@@ -29,6 +29,7 @@ From: ubuntu:20.04
     make
     ctest
     make install
+    
     cd /usr/local/MIMOSA/src
     make clean -f ./makefile.gfortran
     make -f ./makefile.gfortran
