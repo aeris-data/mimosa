@@ -1,0 +1,55 @@
+FF         = nvfortran
+DEBUG      = no
+SRCDIR     = sources
+GRIBPATH   =$(shell pkg-config --cflags eccodes)
+GRIBLD     =$(shell pkg-config --libs eccodes)
+ifeq ($(DEBUG),yes)
+	FFLAGS = -O3 -g -W -Wall $(GRIBPATH) -I$(SRCDIR)
+else
+	FFLAGS = -O3 $(GRIBPATH) -I$(SRCDIR)
+endif
+
+LDFLAGS    = $(FFLAGS) $(GRIBPATH) $(GRIBLD)  -leccodes_f90
+EXEC       = mimosa.x
+SRC        = $(SRCDIR)/constantes.f90 \
+			 $(SRCDIR)/interfaces_mod.f90 \
+			 $(SRCDIR)/stations.f90 \
+			 $(SRCDIR)/initgrid.f90 \
+			 $(SRCDIR)/njour.f90 \
+			 $(SRCDIR)/njouri.f90 \
+			 $(SRCDIR)/readecmr.f90 \
+			 $(SRCDIR)/readgrib.f90 \
+			 $(SRCDIR)/pvp.f90 \
+			 $(SRCDIR)/ainterp2d.f90 \
+			 $(SRCDIR)/deplacement.f90 \
+			 $(SRCDIR)/indgrille.f90 \
+			 $(SRCDIR)/xyinterp.f90 \
+			 $(SRCDIR)/lisse2d.f90 \
+			 $(SRCDIR)/regrid2.f90 \
+			 $(SRCDIR)/poids.f90 \
+			 $(SRCDIR)/raccord.f90 \
+			 $(SRCDIR)/diffusion.f90 \
+			 $(SRCDIR)/mimosa.f90
+OBJ        = $(SRC:.f90=.o)
+
+all: $(EXEC)
+ifeq ($(DEBUG),yes)
+	@echo "Generation en mode debug"
+else
+	@echo "Generation en mode release"
+endif
+
+mimosa.x: $(OBJ)
+	$(FF) -o $@ $^ $(LDFLAGS)
+	
+$(SRCDIR)/%.o: $(SRCDIR)/%.f90
+	@echo $@
+	@$(FF) -o $@ -c $< $(FFLAGS)
+	
+.PHONY: clean veryclean
+
+clean:
+	@rm -rf $(SRCDIR)/*.o *.mod
+	
+veryclean: clean
+	@rm -rf $(EXEC) 
