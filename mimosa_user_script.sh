@@ -47,35 +47,35 @@ function warn_msg(){
 # PARAMETERS TO DEFINE BY THE USER         #
 ############################################
 
-SIMUDIR="/home/damali/Work/SEDOO/MIMOSA_wdir/MIMOSA_0501"
+SIMUDIR="/home/damali/Work/SEDOO/MIMOSA_wdir/MIMOSA_my_ecmwf"
 RUN_ID_NUMBER="1" # number of the run for the directory (from 1 to anything)
 
 # Start date
 SYEAR=23
-SMONTH=05
-SDAY=01
+SMONTH=10
+SDAY=03
 SHOUR=12
 
 # End date
 EYEAR=23
-EMONTH=05
-EDAY=02
+EMONTH=10
+EDAY=04
 EHOUR=12
 
 ## RUN
 ZONE=3
 INTYPE=2
 INITPV=1
-THETA=( 380 475 550 625 )
+THETA=( 380 475 550 675 )
 
 ## GRID
-NX=320
-NY=161
+NX=288
+NY=145
 # NP=91
 NP=137
 PRES="1000.,975.,950.,925.,900.,875.,850.,825.,800.,775.,750.,700.,650.,600.,550.,500.,450.,400.,350.,300.,250.,225.,200.,175.,150.,125.,100.,70.,50.,30.,20.,10.,7.,5.,3.,2.,1."
-PASLAT=1.125
-PASLONG=1.125
+PASLAT=1.25
+PASLONG=1.25
 LATMIN=-90
 LATMAX=90
 
@@ -94,7 +94,7 @@ DIFF=4050
 #OUTPUT
 NRUN=${RUN_ID_NUMBER}
 NWTEMP=6
-WINDOUT=0
+WINDOUT=1
 TOUT=1
 STATIONS=0
 
@@ -130,7 +130,7 @@ elif (( INTYPE == 2  )); then
 fi
 
 SRCDIR="/usr/local/MIMOSA"
-cp ${SRCDIR}/bin/mimosa.x ${SIMUDIR}/
+cp ${SRCDIR}/src/mimosa.x ${SIMUDIR}/
 
 info_msg "Start of MIMOSA simulation"
 
@@ -311,6 +311,10 @@ mv ${SIMUDIR}/${RUNDIR}/tg* ${SIMUDIR}/${RUNDIR}/DATA
 mv ${SIMUDIR}/${RUNDIR}/ug* ${SIMUDIR}/${RUNDIR}/DATA
 mv ${SIMUDIR}/${RUNDIR}/vg* ${SIMUDIR}/${RUNDIR}/DATA
 info_msg "DONE"
+
+info_msg "Post processing simulation results"
+mkdir -p ${SIMUDIR}/${RUNDIR}/IMAGES
+python3 /usr/local/MIMOSA/post-process-mimosa.py --out-dir ${SIMUDIR}/${RUNDIR}/DATA --im-dir ${SIMUDIR}/${RUNDIR}/IMAGES
 
 info_msg "End of MIMOSA simulation"
 
