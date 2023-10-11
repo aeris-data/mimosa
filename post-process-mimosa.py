@@ -453,6 +453,17 @@ def create_figure_wind(netcdf_file: str, images_folder: str) -> None:
     fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
     plt.close(fig)
 
+def combine_netcdfs(data_dir: str) -> None:
+    for var in ["pvg", "tg", "ug", "vg"]:
+        files = glob.glob(f"{data_dir}/{var}*.nc")
+        theta_levels_all = list(set([os.path.basename(elem).split(".")[1] for elem in files]))
+        for theta in theta_levels_all:
+            current_theta_files = [elem for elem in files if f"{theta}.nc" in elem]
+            datasets = [xr.open_dataset(file) for file in current_theta_files]
+            final_dataset = xr.concat(datasets, dim="time")
+            final_dataset.to_netcdf(f"{data_dir}/{var}.{theta}.nc")
+            datasets = [elem.close() for elem in datasets]
+
 def main(output_folder: str, images_folder: str) -> None:
     list_of_fortran_files = glob.glob(f"{output_folder}/*g*.????")
     list_of_fortran_files.sort()
@@ -477,7 +488,7 @@ def main(output_folder: str, images_folder: str) -> None:
             u_filepath = nc_file
             v_filepath = nc_file.replace("ug","vg")
             if not os.path.exists(v_filepath):
-                print(f"Cannot plot the wind for {os.path.basename(nc_file)}, the v component is missing...")
+                LOGGER.warning(f"Cannot plot the wind for {os.path.basename(nc_file)}, the v component is missing")
                 continue
             else:
                 create_figure_wind([u_filepath, v_filepath], images_folder)
@@ -488,16 +499,17 @@ def main(output_folder: str, images_folder: str) -> None:
             v_filepath = nc_file
             u_filepath = nc_file.replace("vg","ug")
             if not os.path.exists(u_filepath):
-                print(f"Cannot plot the wind for {os.path.basename(nc_file)}, the u component is missing...")
+                LOGGER.warning(f"Cannot plot the wind for {os.path.basename(nc_file)}, the u component is missing")
                 continue
             else:
                 create_figure_wind([u_filepath, v_filepath], images_folder)
                 other_file = file.replace("vg","ug")
                 list_of_fortran_files.remove(file)
                 list_of_fortran_files.remove(other_file)
+        else:
+            LOGGER.warning(f"Can't plot {os.path.basename(nc_file)}, unrecognized variable")
         ii+=1
-            
-            
+    combine_netcdfs(output_folder)
 
 if __name__=="__main__":
     """

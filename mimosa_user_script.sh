@@ -11,13 +11,8 @@
 # Params:
 #   none
 # 
-# Example:
-#   To use this script you need to :
-#      - copy this script in the directory containing MIMOSA executable (mimosa.x)
-#      - make this script executable (chmod 755 mimosa_namelist.sh
-#      - compile MIMOSA using the MakeFile
-#      - configure the simulations in the parameters part below.
-#      - execute the script using ./this_script.sh
+# To launch the simulation you need to changes parameters below for your
+# simulation, and launch it inside the MIMOSA Singularity container
 # 
 # History:
 #   200903 MAD/LPC2E Creation
@@ -25,9 +20,12 @@
 #                    Change creation of input.namelist due to change in MIMOSA model
 #                    Add creation and checking of directory needed for the simulation
 #   2011 -> 2023 CB  Maintenance
+#   2023   Updated by Daria MALIK (Magellium) to use only this one script without
+#          to launch simulation
 #
 # Author:
 #   M.-A. Drouin & Cathy Boonne
+#   (updated by D.Malik)
 # ----------------------------------------------------------------------------------------------
 
 function info_msg(){
@@ -42,6 +40,15 @@ function warn_msg(){
 	txt=$1
 	echo "$(date +'%d/%m/%Y %H:%M:%S')   [WARNING]   ${txt}"
 }
+
+info_msg "!======================================================================!"
+info_msg "!               __  __ _____ __  __  ____   _____                      !"
+info_msg "!              |  \/  |_   _|  \/  |/ __ \ / ____|  /\                 !"
+info_msg "!              | \  / | | | | \  / | |  | | (___   /  \                !"
+info_msg "!              | |\/| | | | | |\/| | |  | |\___ \ / /\ \               !"
+info_msg "!              | |  | |_| |_| |  | | |__| |____) / ____ \              !"
+info_msg "!              |_|  |_|_____|_|  |_|\____/|_____/_/    \_\             !"
+info_msg "!======================================================================!"
 
 ############################################
 # PARAMETERS TO DEFINE BY THE USER         #
