@@ -212,7 +212,7 @@ EOF
         time_part=$(echo "${FILENAME}" | cut -d'_' -f2)
         fcstep_part=$(echo "${FILENAME}" | cut -d'_' -f3)
         new_name=$(date --date "${date_part} ${time_part} + ${fcstep_part} hours" +"%y%m%d%H")
-        mv ${FILE} ${DATA_DIR}/${new_name}.grib
+        mv ${FILE} ${DATA_DIR}/D${new_name}.grib
     done
 }
 
