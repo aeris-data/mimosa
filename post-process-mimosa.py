@@ -86,6 +86,8 @@ def find_nearest(array, value):
 def create_netcdf_file(fortran_file_filepath: str, output_folder: str) -> str:
     filename = os.path.basename(fortran_file_filepath)
     nc_filepath = f"{output_folder}/{filename}.nc"
+    if os.path.exists(nc_filepath):
+        return nc_filepath
     with FortranFile(fortran_file_filepath, "r") as f:
         all_data_bytes = f.read_record(dtype=np.uint8)
     header_size_bytes = 30*4
@@ -190,79 +192,82 @@ def create_figure_pv(netcdf_file: str, images_folder: str) -> None:
     # ------------------------------------------------------------------------------------
     global_levels = np.concatenate(((-PV_LEVELS[theta_level][::-1])[:-1], PV_LEVELS[theta_level]))
     image_filepath = f"{images_folder}/{os.path.basename(netcdf_file)[:-3]}.png"
-    fig = plt.figure()
-    p = (ds.pv[0,0,:,:]).plot.contourf(levels=global_levels,
-                                    transform=ccrs.PlateCarree(),
-                                    subplot_kws={"projection": ccrs.PlateCarree()},
-                                    cmap=custom_cmap,
-                                    add_colorbar=True,
-                                    cbar_kwargs={"fraction": 0.023})
-    p1 = (ds.pv[0,0,:,:]).plot.contour(levels=global_levels,
-                                    transform=ccrs.PlateCarree(),
-                                    subplot_kws={"projection": ccrs.PlateCarree()},
-                                    colors="k", linestyles="-", linewidths=0.5)
-    p.axes.coastlines(color="w", linewidth=1.5)
-    obj = p.axes.gridlines(linestyle="--", linewidth=0.5, draw_labels=True)
-    obj.top_labels   = False
-    obj.right_labels = False
-    obj.xlabel_style = {"size":8}
-    obj.ylabel_style = {"size":8}
-    p.axes.set_extent([-180, 180, -90, 90], ccrs.PlateCarree())
-    title = f"MIMOSA Potential Vorticity\ntime = {format_datetime(str(ds.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {theta_level} [K]"
-    p.axes.set_title(title, fontsize=10)
-    p.colorbar.ax.yaxis.label.set_fontsize(10)
-    p.colorbar.set_ticks(global_levels[::2])
-    p.colorbar.ax.tick_params(labelsize=8)
-    fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
-    plt.close(fig)
+    if not os.path.exists(image_filepath):
+        fig = plt.figure()
+        p = (ds.pv[0,0,:,:]).plot.contourf(levels=global_levels,
+                                        transform=ccrs.PlateCarree(),
+                                        subplot_kws={"projection": ccrs.PlateCarree()},
+                                        cmap=custom_cmap,
+                                        add_colorbar=True,
+                                        cbar_kwargs={"fraction": 0.023})
+        p1 = (ds.pv[0,0,:,:]).plot.contour(levels=global_levels,
+                                        transform=ccrs.PlateCarree(),
+                                        subplot_kws={"projection": ccrs.PlateCarree()},
+                                        colors="k", linestyles="-", linewidths=0.5)
+        p.axes.coastlines(color="w", linewidth=1.5)
+        obj = p.axes.gridlines(linestyle="--", linewidth=0.5, draw_labels=True)
+        obj.top_labels   = False
+        obj.right_labels = False
+        obj.xlabel_style = {"size":8}
+        obj.ylabel_style = {"size":8}
+        p.axes.set_extent([-180, 180, -90, 90], ccrs.PlateCarree())
+        title = f"MIMOSA Potential Vorticity\ntime = {format_datetime(str(ds.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {theta_level} [K]"
+        p.axes.set_title(title, fontsize=10)
+        p.colorbar.ax.yaxis.label.set_fontsize(10)
+        p.colorbar.set_ticks(global_levels[::2])
+        p.colorbar.ax.tick_params(labelsize=8)
+        fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
+        plt.close(fig)
     # ------------------------------------------------------------------------------------
     # NORTH POLE PLOT
     # ------------------------------------------------------------------------------------
     image_filepath = f"{images_folder}/{os.path.basename(netcdf_file)[:-3].replace('pvg','pvn')}.png"
-    fig = plt.figure()
-    p = (ds.pv[0,0,:,:]).plot.contourf(levels=PV_LEVELS[theta_level],
-                                    transform=ccrs.PlateCarree(),
-                                    subplot_kws={"projection": ccrs.NorthPolarStereo()},
-                                    cmap=custom_cmap)
-    p1 = (ds.pv[0,0,:,:]).plot.contour(levels=PV_LEVELS[theta_level],
-                                    transform=ccrs.PlateCarree(),
-                                    subplot_kws={"projection": ccrs.NorthPolarStereo()},
-                                    colors="k", linestyles="-", linewidths=0.5)
-    p.axes.coastlines(color="w", linewidth=1.5)
-    obj = p.axes.gridlines(linestyle="--", linewidth=0.5)
-    p.axes.set_extent([-180, 180, 30, 90], ccrs.PlateCarree())
-    title = f"MIMOSA Potential Vorticity\nNorth Pole (PV=PV)\ntime = {format_datetime(str(ds.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {theta_level} [K]"
-    p.axes.set_title(title, fontsize=15)
-    p.colorbar.ax.yaxis.label.set_fontsize(15)
-    p.colorbar.set_ticks(PV_LEVELS[theta_level])
-    p.colorbar.ax.tick_params(labelsize=10)
-    fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
-    ds.close()
-    plt.close(fig)
+    if not os.path.exists(image_filepath):
+        fig = plt.figure()
+        p = (ds.pv[0,0,:,:]).plot.contourf(levels=PV_LEVELS[theta_level],
+                                        transform=ccrs.PlateCarree(),
+                                        subplot_kws={"projection": ccrs.NorthPolarStereo()},
+                                        cmap=custom_cmap)
+        p1 = (ds.pv[0,0,:,:]).plot.contour(levels=PV_LEVELS[theta_level],
+                                        transform=ccrs.PlateCarree(),
+                                        subplot_kws={"projection": ccrs.NorthPolarStereo()},
+                                        colors="k", linestyles="-", linewidths=0.5)
+        p.axes.coastlines(color="w", linewidth=1.5)
+        obj = p.axes.gridlines(linestyle="--", linewidth=0.5)
+        p.axes.set_extent([-180, 180, 30, 90], ccrs.PlateCarree())
+        title = f"MIMOSA Potential Vorticity\nNorth Pole (PV=PV)\ntime = {format_datetime(str(ds.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {theta_level} [K]"
+        p.axes.set_title(title, fontsize=15)
+        p.colorbar.ax.yaxis.label.set_fontsize(15)
+        p.colorbar.set_ticks(PV_LEVELS[theta_level])
+        p.colorbar.ax.tick_params(labelsize=10)
+        fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
+        ds.close()
+        plt.close(fig)
     # ------------------------------------------------------------------------------------
     # SOUTH POLE PLOT
     # ------------------------------------------------------------------------------------
     image_filepath = f"{images_folder}/{os.path.basename(netcdf_file)[:-3].replace('pvg','pvs')}.png"
-    fig = plt.figure()
-    p = (-ds.pv[0,0,:,:]).plot.contourf(levels=PV_LEVELS[theta_level],
-                                    transform=ccrs.PlateCarree(),
-                                    subplot_kws={"projection": ccrs.SouthPolarStereo()},
-                                    cmap=custom_cmap)
-    p1 = (-ds.pv[0,0,:,:]).plot.contour(levels=PV_LEVELS[theta_level],
-                                    transform=ccrs.PlateCarree(),
-                                    subplot_kws={"projection": ccrs.SouthPolarStereo()},
-                                    colors="k", linestyles="-", linewidths=0.5)
-    p.axes.coastlines(color="w", linewidth=1.5)
-    obj = p.axes.gridlines(linestyle="--", linewidth=0.5)
-    p.axes.set_extent([-180, 180, -90, -30], ccrs.PlateCarree())
-    title = f"MIMOSA Potential Vorticity\nSouth Pole (PV=-PV)\ntime = {format_datetime(str(ds.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {theta_level} [K]"
-    p.axes.set_title(title, fontsize=15)
-    p.colorbar.ax.yaxis.label.set_fontsize(15)
-    p.colorbar.set_ticks(PV_LEVELS[theta_level])
-    p.colorbar.ax.tick_params(labelsize=10)
-    fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
-    ds.close()
-    plt.close(fig)
+    if not os.path.exists(image_filepath):
+        fig = plt.figure()
+        p = (-ds.pv[0,0,:,:]).plot.contourf(levels=PV_LEVELS[theta_level],
+                                        transform=ccrs.PlateCarree(),
+                                        subplot_kws={"projection": ccrs.SouthPolarStereo()},
+                                        cmap=custom_cmap)
+        p1 = (-ds.pv[0,0,:,:]).plot.contour(levels=PV_LEVELS[theta_level],
+                                        transform=ccrs.PlateCarree(),
+                                        subplot_kws={"projection": ccrs.SouthPolarStereo()},
+                                        colors="k", linestyles="-", linewidths=0.5)
+        p.axes.coastlines(color="w", linewidth=1.5)
+        obj = p.axes.gridlines(linestyle="--", linewidth=0.5)
+        p.axes.set_extent([-180, 180, -90, -30], ccrs.PlateCarree())
+        title = f"MIMOSA Potential Vorticity\nSouth Pole (PV=-PV)\ntime = {format_datetime(str(ds.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {theta_level} [K]"
+        p.axes.set_title(title, fontsize=15)
+        p.colorbar.ax.yaxis.label.set_fontsize(15)
+        p.colorbar.set_ticks(PV_LEVELS[theta_level])
+        p.colorbar.ax.tick_params(labelsize=10)
+        fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
+        ds.close()
+        plt.close(fig)
 
 def create_figure_t(netcdf_file: str, images_folder: str) -> None:
     gaussian_kernel_sigma = 4
@@ -273,78 +278,81 @@ def create_figure_t(netcdf_file: str, images_folder: str) -> None:
     # GLOBAL PLOT
     # ------------------------------------------------------------------------------------
     image_filepath = f"{images_folder}/{os.path.basename(netcdf_file)[:-3]}.png"
-    fig = plt.figure()
-    p = (ds.t[0,0,:,:]).plot.contourf(levels=T_LEVELS,
-                                    transform=ccrs.PlateCarree(),
-                                    subplot_kws={"projection": ccrs.PlateCarree()},
-                                    cmap=custom_cmap,
-                                    add_colorbar=True,
-                                    cbar_kwargs={"fraction": 0.023})
-    p1 = (ds.t[0,0,:,:]).plot.contour(levels=T_LEVELS,
-                                    transform=ccrs.PlateCarree(),
-                                    subplot_kws={"projection": ccrs.PlateCarree()},
-                                    colors="k", linestyles="-", linewidths=0.5)
-    p.axes.coastlines(color="w", linewidth=1.5)
-    obj = p.axes.gridlines(linestyle="--", linewidth=0.5, draw_labels=True)
-    obj.top_labels   = False
-    obj.right_labels = False
-    obj.xlabel_style = {"size":8}
-    obj.ylabel_style = {"size":8}
-    p.axes.set_extent([-180, 180, -90, 90], ccrs.PlateCarree())
-    title = f"MIMOSA Temperature [K]\ntime = {format_datetime(str(ds.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {theta_level} [K]"
-    p.axes.set_title(title, fontsize=10)
-    p.colorbar.ax.yaxis.label.set_fontsize(10)
-    p.colorbar.set_ticks(T_LEVELS)
-    p.colorbar.ax.tick_params(labelsize=8)
-    fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
-    plt.close(fig)
+    if not os.path.exists(image_filepath):
+        fig = plt.figure()
+        p = (ds.t[0,0,:,:]).plot.contourf(levels=T_LEVELS,
+                                        transform=ccrs.PlateCarree(),
+                                        subplot_kws={"projection": ccrs.PlateCarree()},
+                                        cmap=custom_cmap,
+                                        add_colorbar=True,
+                                        cbar_kwargs={"fraction": 0.023})
+        p1 = (ds.t[0,0,:,:]).plot.contour(levels=T_LEVELS,
+                                        transform=ccrs.PlateCarree(),
+                                        subplot_kws={"projection": ccrs.PlateCarree()},
+                                        colors="k", linestyles="-", linewidths=0.5)
+        p.axes.coastlines(color="w", linewidth=1.5)
+        obj = p.axes.gridlines(linestyle="--", linewidth=0.5, draw_labels=True)
+        obj.top_labels   = False
+        obj.right_labels = False
+        obj.xlabel_style = {"size":8}
+        obj.ylabel_style = {"size":8}
+        p.axes.set_extent([-180, 180, -90, 90], ccrs.PlateCarree())
+        title = f"MIMOSA Temperature [K]\ntime = {format_datetime(str(ds.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {theta_level} [K]"
+        p.axes.set_title(title, fontsize=10)
+        p.colorbar.ax.yaxis.label.set_fontsize(10)
+        p.colorbar.set_ticks(T_LEVELS)
+        p.colorbar.ax.tick_params(labelsize=8)
+        fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
+        plt.close(fig)
     # ------------------------------------------------------------------------------------
     # NORTH POLE PLOT
     # ------------------------------------------------------------------------------------
     image_filepath = f"{images_folder}/{os.path.basename(netcdf_file)[:-3].replace('tg','tn')}.png"
-    fig = plt.figure()
-    p = (ds.t[0,0,:,:]).plot.contourf(levels=T_LEVELS,
-                                    transform=ccrs.PlateCarree(),
-                                    subplot_kws={"projection": ccrs.NorthPolarStereo()},
-                                    cmap=custom_cmap)
-    p1 = (ds.t[0,0,:,:]).plot.contour(levels=T_LEVELS,
-                                    transform=ccrs.PlateCarree(),
-                                    subplot_kws={"projection": ccrs.NorthPolarStereo()},
-                                    colors="k", linestyles="-", linewidths=0.5)
-    p.axes.coastlines(color="w", linewidth=1.5)
-    obj = p.axes.gridlines(linestyle="--", linewidth=0.5)
-    p.axes.set_extent([-180, 180, 30, 90], ccrs.PlateCarree())
-    title = f"MIMOSA Temperature [K]\nNorth Pole\ntime = {format_datetime(str(ds.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {theta_level} [K]"
-    p.axes.set_title(title, fontsize=15)
-    p.colorbar.ax.yaxis.label.set_fontsize(15)
-    p.colorbar.set_ticks(T_LEVELS)
-    p.colorbar.ax.tick_params(labelsize=10)
-    fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
-    plt.close(fig)
+    if not os.path.exists(image_filepath):
+        fig = plt.figure()
+        p = (ds.t[0,0,:,:]).plot.contourf(levels=T_LEVELS,
+                                        transform=ccrs.PlateCarree(),
+                                        subplot_kws={"projection": ccrs.NorthPolarStereo()},
+                                        cmap=custom_cmap)
+        p1 = (ds.t[0,0,:,:]).plot.contour(levels=T_LEVELS,
+                                        transform=ccrs.PlateCarree(),
+                                        subplot_kws={"projection": ccrs.NorthPolarStereo()},
+                                        colors="k", linestyles="-", linewidths=0.5)
+        p.axes.coastlines(color="w", linewidth=1.5)
+        obj = p.axes.gridlines(linestyle="--", linewidth=0.5)
+        p.axes.set_extent([-180, 180, 30, 90], ccrs.PlateCarree())
+        title = f"MIMOSA Temperature [K]\nNorth Pole\ntime = {format_datetime(str(ds.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {theta_level} [K]"
+        p.axes.set_title(title, fontsize=15)
+        p.colorbar.ax.yaxis.label.set_fontsize(15)
+        p.colorbar.set_ticks(T_LEVELS)
+        p.colorbar.ax.tick_params(labelsize=10)
+        fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
+        plt.close(fig)
     # ------------------------------------------------------------------------------------
     # SOUTH POLE PLOT
     # ------------------------------------------------------------------------------------
     image_filepath = f"{images_folder}/{os.path.basename(netcdf_file)[:-3].replace('tg','ts')}.png"
-    fig = plt.figure()
-    p = (ds.t[0,0,:,:]).plot.contourf(levels=T_LEVELS,
-                                    transform=ccrs.PlateCarree(),
-                                    subplot_kws={"projection": ccrs.SouthPolarStereo()},
-                                    cmap=custom_cmap)
-    p1 = (ds.t[0,0,:,:]).plot.contour(levels=T_LEVELS,
-                                    transform=ccrs.PlateCarree(),
-                                    subplot_kws={"projection": ccrs.SouthPolarStereo()},
-                                    colors="k", linestyles="-", linewidths=0.5)
-    p.axes.coastlines(color="w", linewidth=1.5)
-    obj = p.axes.gridlines(linestyle="--", linewidth=0.5)
-    p.axes.set_extent([-180, 180, -90, -30], ccrs.PlateCarree())
-    title = f"MIMOSA Temperature [K]\nSouth Pole\ntime = {format_datetime(str(ds.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {theta_level} [K]"
-    p.axes.set_title(title, fontsize=15)
-    p.colorbar.ax.yaxis.label.set_fontsize(15)
-    p.colorbar.set_ticks(T_LEVELS)
-    p.colorbar.ax.tick_params(labelsize=10)
-    fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
-    plt.close(fig)
-    ds.close()
+    if not os.path.exists(image_filepath):
+        fig = plt.figure()
+        p = (ds.t[0,0,:,:]).plot.contourf(levels=T_LEVELS,
+                                        transform=ccrs.PlateCarree(),
+                                        subplot_kws={"projection": ccrs.SouthPolarStereo()},
+                                        cmap=custom_cmap)
+        p1 = (ds.t[0,0,:,:]).plot.contour(levels=T_LEVELS,
+                                        transform=ccrs.PlateCarree(),
+                                        subplot_kws={"projection": ccrs.SouthPolarStereo()},
+                                        colors="k", linestyles="-", linewidths=0.5)
+        p.axes.coastlines(color="w", linewidth=1.5)
+        obj = p.axes.gridlines(linestyle="--", linewidth=0.5)
+        p.axes.set_extent([-180, 180, -90, -30], ccrs.PlateCarree())
+        title = f"MIMOSA Temperature [K]\nSouth Pole\ntime = {format_datetime(str(ds.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {theta_level} [K]"
+        p.axes.set_title(title, fontsize=15)
+        p.colorbar.ax.yaxis.label.set_fontsize(15)
+        p.colorbar.set_ticks(T_LEVELS)
+        p.colorbar.ax.tick_params(labelsize=10)
+        fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
+        plt.close(fig)
+        ds.close()
 
 def create_figure_wind(netcdf_file: str, images_folder: str) -> None:
     u_file = netcdf_file[0]
@@ -363,106 +371,129 @@ def create_figure_wind(netcdf_file: str, images_folder: str) -> None:
     # GLOBAL PLOT
     # ------------------------------------------------------------------------------------
     image_filepath = f"{images_folder}/w{os.path.basename(u_file)[1:-3]}.png"
-    fig = plt.figure()
-    p = ds_wind.magnitude.plot.imshow(x="lon",y="lat",
-                                    transform=ccrs.PlateCarree(),
-                                    subplot_kws={"projection": ccrs.PlateCarree()},
-                                    cmap="jet",
-                                    add_colorbar=True,
-                                    cbar_kwargs={"fraction": 0.023},
-                                    vmin=0, vmax=100, extend="max")
-    p1 = subset_ds.plot.quiver(x="lon",y="lat",u="u",v="v",
-                            transform=ccrs.PlateCarree(),
-                            subplot_kws={"projection": ccrs.PlateCarree()},
-                            color="k",
-                            scale=2500,
-                            width=0.001,
-                            headwidth=7)
-    p.axes.coastlines(color="w", linewidth=1.5)
-    obj = p.axes.gridlines(linestyle="--", linewidth=0.5, draw_labels=True)
-    obj.top_labels   = False
-    obj.right_labels = False
-    obj.xlabel_style = {"size":8}
-    obj.ylabel_style = {"size":8}
-    p.axes.set_extent([-180, 180, -90, 90], ccrs.PlateCarree())
-    title = f"MIMOSA Wind [m.s-]\ntime = {format_datetime(str(ds_u.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {ds_u.isentropic_level_Kelvin} [K]"
-    p.axes.set_title(title, fontsize=10)
-    p.colorbar.ax.yaxis.label.set_fontsize(10)
-    p.colorbar.set_label("Wind [m.s-1]")
-    p.colorbar.ax.tick_params(labelsize=8)
-    fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
-    plt.close(fig)
+    if not os.path.exists(image_filepath):
+        fig = plt.figure()
+        p = ds_wind.magnitude.plot.imshow(x="lon",y="lat",
+                                        transform=ccrs.PlateCarree(),
+                                        subplot_kws={"projection": ccrs.PlateCarree()},
+                                        cmap="jet",
+                                        add_colorbar=True,
+                                        cbar_kwargs={"fraction": 0.023},
+                                        vmin=0, vmax=100, extend="max")
+        p1 = subset_ds.plot.quiver(x="lon",y="lat",u="u",v="v",
+                                transform=ccrs.PlateCarree(),
+                                subplot_kws={"projection": ccrs.PlateCarree()},
+                                color="k",
+                                scale=2500,
+                                width=0.001,
+                                headwidth=7)
+        p.axes.coastlines(color="w", linewidth=1.5)
+        obj = p.axes.gridlines(linestyle="--", linewidth=0.5, draw_labels=True)
+        obj.top_labels   = False
+        obj.right_labels = False
+        obj.xlabel_style = {"size":8}
+        obj.ylabel_style = {"size":8}
+        p.axes.set_extent([-180, 180, -90, 90], ccrs.PlateCarree())
+        title = f"MIMOSA Wind [m.s-]\ntime = {format_datetime(str(ds_u.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {ds_u.isentropic_level_Kelvin} [K]"
+        p.axes.set_title(title, fontsize=10)
+        p.colorbar.ax.yaxis.label.set_fontsize(10)
+        p.colorbar.set_label("Wind [m.s-1]")
+        p.colorbar.ax.tick_params(labelsize=8)
+        fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
+        plt.close(fig)
     # ------------------------------------------------------------------------------------
     # NORTH POLE PLOT
     # ------------------------------------------------------------------------------------
     image_filepath = f"{images_folder}/w{os.path.basename(u_file)[1:-3].replace('g','n')}.png"
-    fig = plt.figure()
-    p = ds_wind.magnitude.plot.imshow(x="lon",y="lat",
-                                    transform=ccrs.PlateCarree(),
-                                    subplot_kws={"projection": ccrs.NorthPolarStereo()},
-                                    cmap="jet",
-                                    add_colorbar=True,
-                                    cbar_kwargs={"fraction": 0.023},
-                                    vmin=0, vmax=100, extend="max")
-    p1 = subset_ds.plot.quiver(x="lon",y="lat",u="u",v="v",
-                            transform=ccrs.PlateCarree(),
-                            subplot_kws={"projection": ccrs.NorthPolarStereo()},
-                            color="w",
-                            scale=1500,
-                            width=0.003,
-                            headwidth=7,
-                            headlength=7)
-    p.axes.coastlines(color="w", linewidth=1.5)
-    obj = p.axes.gridlines(linestyle="--", linewidth=0.5)
-    p.axes.set_extent([-180, 180, 30, 90], ccrs.PlateCarree())
-    title = f"MIMOSA Wind [m.s-]\nNorth Pole\ntime = {format_datetime(str(ds_u.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {ds_u.isentropic_level_Kelvin} [K]"
-    p.axes.set_title(title, fontsize=10)
-    p.colorbar.ax.yaxis.label.set_fontsize(10)
-    p.colorbar.set_label("Wind [m.s-1]")
-    p.colorbar.ax.tick_params(labelsize=8)
-    fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
-    plt.close(fig)
+    if not os.path.exists(image_filepath):
+        fig = plt.figure()
+        p = ds_wind.magnitude.plot.imshow(x="lon",y="lat",
+                                        transform=ccrs.PlateCarree(),
+                                        subplot_kws={"projection": ccrs.NorthPolarStereo()},
+                                        cmap="jet",
+                                        add_colorbar=True,
+                                        cbar_kwargs={"fraction": 0.023},
+                                        vmin=0, vmax=100, extend="max")
+        p1 = subset_ds.plot.quiver(x="lon",y="lat",u="u",v="v",
+                                transform=ccrs.PlateCarree(),
+                                subplot_kws={"projection": ccrs.NorthPolarStereo()},
+                                color="w",
+                                scale=1500,
+                                width=0.003,
+                                headwidth=7,
+                                headlength=7)
+        p.axes.coastlines(color="w", linewidth=1.5)
+        obj = p.axes.gridlines(linestyle="--", linewidth=0.5)
+        p.axes.set_extent([-180, 180, 30, 90], ccrs.PlateCarree())
+        title = f"MIMOSA Wind [m.s-]\nNorth Pole\ntime = {format_datetime(str(ds_u.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {ds_u.isentropic_level_Kelvin} [K]"
+        p.axes.set_title(title, fontsize=10)
+        p.colorbar.ax.yaxis.label.set_fontsize(10)
+        p.colorbar.set_label("Wind [m.s-1]")
+        p.colorbar.ax.tick_params(labelsize=8)
+        fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
+        plt.close(fig)
     # ------------------------------------------------------------------------------------
     # NORTH POLE PLOT
     # ------------------------------------------------------------------------------------
     image_filepath = f"{images_folder}/w{os.path.basename(u_file)[1:-3].replace('g','s')}.png"
-    fig = plt.figure()
-    p = ds_wind.magnitude.plot.imshow(x="lon",y="lat",
-                                    transform=ccrs.PlateCarree(),
-                                    subplot_kws={"projection": ccrs.SouthPolarStereo()},
-                                    cmap="jet",
-                                    add_colorbar=True,
-                                    cbar_kwargs={"fraction": 0.023},
-                                    vmin=0, vmax=100, extend="max")
-    p1 = subset_ds.plot.quiver(x="lon",y="lat",u="u",v="v",
-                            transform=ccrs.PlateCarree(),
-                            subplot_kws={"projection": ccrs.SouthPolarStereo()},
-                            color="w",
-                            scale=1500,
-                            width=0.003,
-                            headwidth=7,
-                            headlength=7)
-    p.axes.coastlines(color="w", linewidth=1.5)
-    obj = p.axes.gridlines(linestyle="--", linewidth=0.5)
-    p.axes.set_extent([-180, 180, -90, -30], ccrs.PlateCarree())
-    title = f"MIMOSA Wind [m.s-]\nSouth Pole\ntime = {format_datetime(str(ds_u.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {ds_u.isentropic_level_Kelvin} [K]"
-    p.axes.set_title(title, fontsize=10)
-    p.colorbar.ax.yaxis.label.set_fontsize(10)
-    p.colorbar.set_label("Wind [m.s-1]")
-    p.colorbar.ax.tick_params(labelsize=8)
-    fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
-    plt.close(fig)
+    if not os.path.exists(image_filepath):
+        fig = plt.figure()
+        p = ds_wind.magnitude.plot.imshow(x="lon",y="lat",
+                                        transform=ccrs.PlateCarree(),
+                                        subplot_kws={"projection": ccrs.SouthPolarStereo()},
+                                        cmap="jet",
+                                        add_colorbar=True,
+                                        cbar_kwargs={"fraction": 0.023},
+                                        vmin=0, vmax=100, extend="max")
+        p1 = subset_ds.plot.quiver(x="lon",y="lat",u="u",v="v",
+                                transform=ccrs.PlateCarree(),
+                                subplot_kws={"projection": ccrs.SouthPolarStereo()},
+                                color="w",
+                                scale=1500,
+                                width=0.003,
+                                headwidth=7,
+                                headlength=7)
+        p.axes.coastlines(color="w", linewidth=1.5)
+        obj = p.axes.gridlines(linestyle="--", linewidth=0.5)
+        p.axes.set_extent([-180, 180, -90, -30], ccrs.PlateCarree())
+        title = f"MIMOSA Wind [m.s-]\nSouth Pole\ntime = {format_datetime(str(ds_u.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {ds_u.isentropic_level_Kelvin} [K]"
+        p.axes.set_title(title, fontsize=10)
+        p.colorbar.ax.yaxis.label.set_fontsize(10)
+        p.colorbar.set_label("Wind [m.s-1]")
+        p.colorbar.ax.tick_params(labelsize=8)
+        fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
+        plt.close(fig)
 
 def combine_netcdfs(data_dir: str) -> None:
     for var in ["pvg", "tg", "ug", "vg"]:
         files = glob.glob(f"{data_dir}/{var}*.nc")
+        files.sort()
         theta_levels_all = list(set([os.path.basename(elem).split(".")[1] for elem in files]))
         for theta in theta_levels_all:
-            current_theta_files = [elem for elem in files if f"{theta}.nc" in elem]
-            datasets = [xr.open_dataset(file) for file in current_theta_files]
-            final_dataset = xr.concat(datasets, dim="time")
-            final_dataset.to_netcdf(f"{data_dir}/{var}.{theta}.nc")
-            datasets = [elem.close() for elem in datasets]
+            final_filepath = f"{data_dir}/{var}.{theta}.nc"
+            if os.path.exists(final_filepath):
+                if os.path.getsize(final_filepath)==0:
+                    os.remove(f"{data_dir}/{var}.{theta}.nc")
+                else:
+                    try:
+                        trash = xr.open_dataset(final_filepath)
+                        if trash.size==0:
+                            os.remove(f"{data_dir}/{var}.{theta}.nc")
+                        else:
+                            continue
+                    except:
+                        os.remove(f"{data_dir}/{var}.{theta}.nc")
+            else:
+                current_theta_files = [elem for elem in files if f"{theta}.nc" in elem]
+                datasets = [xr.open_dataset(file) for file in current_theta_files]
+                final_dataset = xr.concat(datasets, dim="time")
+                final_dataset = final_dataset.sortby("time")
+                try:
+                    final_dataset.to_netcdf(f"{data_dir}/{var}.{theta}.nc")
+                except:
+                    os.remove(f"{data_dir}/{var}.{theta}.nc")
+                    final_dataset.to_netcdf(f"{data_dir}/{var}.{theta}.nc")
+                datasets = [elem.close() for elem in datasets]
 
 def main(output_folder: str, images_folder: str) -> None:
     list_of_fortran_files = glob.glob(f"{output_folder}/*g*.????")
