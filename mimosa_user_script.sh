@@ -20,13 +20,39 @@
 #                    Change creation of input.namelist due to change in MIMOSA model
 #                    Add creation and checking of directory needed for the simulation
 #   2011 -> 2023 CB  Maintenance
-#   2023   Updated by Daria MALIK (Magellium) to use only this one script without
+#   2023   Updated by Daria MALIK (Magellium) to use only this one script
 #          to launch simulation
 #
 # Author:
 #   M.-A. Drouin & Cathy Boonne
 #   (updated by D.Malik)
 # ----------------------------------------------------------------------------------------------
+
+function help() {
+    bold=$(tput bold)
+    normal=$(tput sgr0)
+    echo "#       .-'';'-."
+	echo "#     ,'   <_,-.\`.       MIMOSA tool for"
+	echo "#    /)   ,--,_>\_\       high-resolution"
+	echo "#   |'   (      \_ |       potential vorticity"
+	echo "#   |_    \`-.    / |         advection model"
+	echo "#    \\\`-.   ;  _(\`/"
+	echo "#     \`.(    \/ ,' "
+	echo "#       \`-....-'"
+    echo "#"
+    echo "# This script handles the MIMOSA simulation input"
+    echo "# parameters and launches the simulation, as well as"
+	echo "# the post-processing for the output additional"
+	echo "# reformating and results visualization"
+    echo "#"
+    echo "# Usage: ${SCRIPT_NAME} [options] arguments"
+    echo "# Options:"
+    echo "#   ${bold}-h, --help${normal}     Show this help message and exit"
+    echo "# Arguments:"
+    echo "#   ${bold}--config conf_fielpath${normal}  This argument must correspond to the configuration"
+    echo "# file where the user defines input parameters needed for the extraction"
+    echo "#"
+}
 
 function info_msg(){
 	txt=$1
@@ -41,116 +67,62 @@ function warn_msg(){
 	echo "$(date +'%d/%m/%Y %H:%M:%S')   [WARNING]   ${txt}"
 }
 
-info_msg "!======================================================================!"
-info_msg "!               __  __ _____ __  __  ____   _____                      !"
-info_msg "!              |  \/  |_   _|  \/  |/ __ \ / ____|  /\                 !"
-info_msg "!              | \  / | | | | \  / | |  | | (___   /  \                !"
-info_msg "!              | |\/| | | | | |\/| | |  | |\___ \ / /\ \               !"
-info_msg "!              | |  | |_| |_| |  | | |__| |____) / ____ \              !"
-info_msg "!              |_|  |_|_____|_|  |_|\____/|_____/_/    \_\             !"
-info_msg "!======================================================================!"
+function main(){
+	info_msg "!======================================================================!"
+	info_msg "!               __  __ _____ __  __  ____   _____                      !"
+	info_msg "!              |  \/  |_   _|  \/  |/ __ \ / ____|  /\                 !"
+	info_msg "!              | \  / | | | | \  / | |  | | (___   /  \                !"
+	info_msg "!              | |\/| | | | | |\/| | |  | |\___ \ / /\ \               !"
+	info_msg "!              | |  | |_| |_| |  | | |__| |____) / ____ \              !"
+	info_msg "!              |_|  |_|_____|_|  |_|\____/|_____/_/    \_\             !"
+	info_msg "!======================================================================!"
 
-############################################
-# PARAMETERS TO DEFINE BY THE USER         #
-############################################
+	############################################
+	# Folders/file organization		           #
+	############################################
 
-SIMUDIR="/home/damali/Work/SEDOO/MIMOSA_wdir/MIMOSA_my_ecmwf"
-RUN_ID_NUMBER="1" # number of the run for the directory (from 1 to anything)
+	cd ${SIMUDIR}
 
-# Start date
-SYEAR=23
-SMONTH=10
-SDAY=03
-SHOUR=12
-
-# End date
-EYEAR=23
-EMONTH=10
-EDAY=04
-EHOUR=12
-
-## RUN
-ZONE=3
-INTYPE=2
-INITPV=1
-THETA=( 380 475 550 675 )
-
-## GRID
-NX=288
-NY=145
-# NP=91
-NP=137
-PRES="1000.,975.,950.,925.,900.,875.,850.,825.,800.,775.,750.,700.,650.,600.,550.,500.,450.,400.,350.,300.,250.,225.,200.,175.,150.,125.,100.,70.,50.,30.,20.,10.,7.,5.,3.,2.,1."
-PASLAT=1.25
-PASLONG=1.25
-LATMIN=-90
-LATMAX=90
-
-## CONFIG
-NDEG=6
-NLIS2D=15
-NHGRID=6
-NWRITE=6
-NHMOD=6
-NHRELAX=240
-NPRHMOD=0
-NPRWRITE=0
-INDIFEXPL=0
-DIFF=4050
-
-#OUTPUT
-NRUN=${RUN_ID_NUMBER}
-NWTEMP=6
-WINDOUT=1
-TOUT=1
-STATIONS=0
-
-############################################
-# Folders/file organization		           #
-############################################
-
-cd ${SIMUDIR}
-
-if (( RUN_ID_NUMBER < 10 )) 
-then
-	RUNDIR="RUN0${RUN_ID_NUMBER}"
-else
-	RUNDIR="RUN${RUN_ID_NUMBER}"
-fi
-
-if [ ! -d "${SIMUDIR}/${RUNDIR}" ]; then mkdir ${SIMUDIR}/${RUNDIR}; fi
-if [ ! -d "${SIMUDIR}/${RUNDIR}/DATA" ]; then mkdir ${SIMUDIR}/${RUNDIR}/DATA; fi
-if [ ! -d "${SIMUDIR}/${RUNDIR}/reprise" ]; then mkdir ${SIMUDIR}/${RUNDIR}/reprise; fi
-
-if (( INTYPE == 1 )); then
-	if [ ! -d "${SIMUDIR}/ECMR" ]; then
-		err_msg "Can't find ECMR directory"
-		err_msg "End of program"
-		exit 1
+	if (( RUN_ID_NUMBER < 10 )) 
+	then
+		RUNDIR="RUN0${RUN_ID_NUMBER}"
+	else
+		RUNDIR="RUN${RUN_ID_NUMBER}"
 	fi
-elif (( INTYPE == 2  )); then
-	if [ ! -d "${SIMUDIR}/GRIB" ]; then
-		err_msg "Can't find GRIB directory"
-		err_msg "End of program"
-		exit 1
+
+	if [ ! -d "${SIMUDIR}/${RUNDIR}" ]; then mkdir ${SIMUDIR}/${RUNDIR}; fi
+	if [ ! -d "${SIMUDIR}/${RUNDIR}/DATA" ]; then mkdir ${SIMUDIR}/${RUNDIR}/DATA; fi
+	if [ ! -d "${SIMUDIR}/${RUNDIR}/reprise" ]; then mkdir ${SIMUDIR}/${RUNDIR}/reprise; fi
+
+	if (( INTYPE == 1 )); then
+		if [ ! -d "${SIMUDIR}/ECMR" ]; then
+			err_msg "Can't find ECMR directory"
+			err_msg "End of program"
+			exit 1
+		fi
+	elif (( INTYPE == 2  )); then
+		if [ ! -d "${SIMUDIR}/GRIB" ]; then
+			err_msg "Can't find GRIB directory"
+			err_msg "End of program"
+			exit 1
+		fi
 	fi
-fi
 
-SRCDIR="/usr/local/MIMOSA"
-cp ${SRCDIR}/src/mimosa.x ${SIMUDIR}/
+	SRCDIR="/usr/local/MIMOSA"
+	cp ${SRCDIR}/src/mimosa.x ${SIMUDIR}/
 
-info_msg "Start of MIMOSA simulation"
+	info_msg "Start of MIMOSA simulation"
 
-############################################
-# 3. Simulation launch			           #
-############################################
+	############################################
+	# Parameters configuration                 #
+	############################################
 
-for i in ${THETA[*]}; do
+	for i in ${THETA[*]}; do
 
-	info_msg "run for theta = ${i}K"
+		info_msg "run for theta = ${i}K"
 
-	# Generating the input.namelist file for each isentropic level requested
-	cat > ${SIMUDIR}/input.namelist <<EOF
+		# Generating the input.namelist file for each isentropic level requested
+		cat > ${SIMUDIR}/input.namelist <<EOF
 !======================================================================!
 !               __  __ _____ __  __  ____   _____                      !
 !              |  \/  |_   _|  \/  |/ __ \ / ____|  /\                 !
@@ -302,27 +274,52 @@ stations_out = $STATIONS
 / 
 EOF
 
-	${SIMUDIR}/mimosa.x
+		${SIMUDIR}/mimosa.x
+	done
+
+	info_msg "Simulations for all thetas done"
+
+	\rm ${SIMUDIR}/input.namelist
+	\rm fdat zdat
+
+	info_msg "Moving data into DATA and reprise folders..."
+	mv ${SIMUDIR}/${RUNDIR}/phn* ${SIMUDIR}/${RUNDIR}/reprise
+	mv ${SIMUDIR}/${RUNDIR}/phs* ${SIMUDIR}/${RUNDIR}/reprise
+	mv ${SIMUDIR}/${RUNDIR}/pvg* ${SIMUDIR}/${RUNDIR}/DATA
+	mv ${SIMUDIR}/${RUNDIR}/tg* ${SIMUDIR}/${RUNDIR}/DATA
+	mv ${SIMUDIR}/${RUNDIR}/ug* ${SIMUDIR}/${RUNDIR}/DATA
+	mv ${SIMUDIR}/${RUNDIR}/vg* ${SIMUDIR}/${RUNDIR}/DATA
+	info_msg "DONE"
+
+	info_msg "Post processing simulation results"
+	mkdir -p ${SIMUDIR}/${RUNDIR}/IMAGES
+	python3 /usr/local/MIMOSA/post-process-mimosa.py --out-dir ${SIMUDIR}/${RUNDIR}/DATA --im-dir ${SIMUDIR}/${RUNDIR}/IMAGES
+
+	info_msg "End of MIMOSA simulation"
+
+	exit 0
+}
+
+# ----------------------------------------------------------------------------------------------
+# BASH SCRIPT
+# ----------------------------------------------------------------------------------------------
+
+opts=$(getopt --longoptions "config:,help" --name "$(basename "$0")" --options "h" -- "$@")
+eval set --$opts
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		--config) shift; CONFIG_FILE=$1; shift;;
+        -h|--help) help; exit 0; shift;;
+		\?) shift; printf "%s - ERROR: unrecognized options\n" "$(date +'%d/%m/%Y - %H:%M:%S')"; exit 1; shift;;
+		--) break;;
+	esac
 done
 
-info_msg "Simulations for all thetas done"
+if [[ -z ${CONFIG_FILE} ]]; then
+    printf "%s - ERROR: no configuration file was passed. Exiting script...\n" "$(date +'%d/%m/%Y - %H:%M:%S')";
+    exit 1
+fi
 
-# \rm ${SIMUDIR}/input.namelist
-# \rm fdat zdat
-
-info_msg "Moving data into DATA and reprise folders..."
-mv ${SIMUDIR}/${RUNDIR}/phn* ${SIMUDIR}/${RUNDIR}/reprise
-mv ${SIMUDIR}/${RUNDIR}/phs* ${SIMUDIR}/${RUNDIR}/reprise
-mv ${SIMUDIR}/${RUNDIR}/pvg* ${SIMUDIR}/${RUNDIR}/DATA
-mv ${SIMUDIR}/${RUNDIR}/tg* ${SIMUDIR}/${RUNDIR}/DATA
-mv ${SIMUDIR}/${RUNDIR}/ug* ${SIMUDIR}/${RUNDIR}/DATA
-mv ${SIMUDIR}/${RUNDIR}/vg* ${SIMUDIR}/${RUNDIR}/DATA
-info_msg "DONE"
-
-info_msg "Post processing simulation results"
-mkdir -p ${SIMUDIR}/${RUNDIR}/IMAGES
-python3 /usr/local/MIMOSA/post-process-mimosa.py --out-dir ${SIMUDIR}/${RUNDIR}/DATA --im-dir ${SIMUDIR}/${RUNDIR}/IMAGES
-
-info_msg "End of MIMOSA simulation"
-
-exit 0
+source ${CONFIG_FILE}
+main
