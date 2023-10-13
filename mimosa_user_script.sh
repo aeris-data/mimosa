@@ -28,6 +28,9 @@
 #   (updated by D.Malik)
 # ----------------------------------------------------------------------------------------------
 
+set -e
+PYTHON_SCRIPT="/usr/local/MIMOSA/post-process-mimosa.py"
+
 function help() {
     bold=$(tput bold)
     normal=$(tput sgr0)
@@ -85,14 +88,13 @@ function main(){
 
 	if (( RUN_ID_NUMBER < 10 )) 
 	then
-		RUNDIR="RUN0${RUN_ID_NUMBER}"
+		RUNDIR="RUN0${NRUN}"
 	else
-		RUNDIR="RUN${RUN_ID_NUMBER}"
+		RUNDIR="RUN${NRUN}"
 	fi
 
 	if [ ! -d "${SIMUDIR}/${RUNDIR}" ]; then mkdir ${SIMUDIR}/${RUNDIR}; fi
 	if [ ! -d "${SIMUDIR}/${RUNDIR}/DATA" ]; then mkdir ${SIMUDIR}/${RUNDIR}/DATA; fi
-	if [ ! -d "${SIMUDIR}/${RUNDIR}/reprise" ]; then mkdir ${SIMUDIR}/${RUNDIR}/reprise; fi
 
 	if (( INTYPE == 1 )); then
 		if [ ! -d "${SIMUDIR}/ECMR" ]; then
@@ -282,18 +284,24 @@ EOF
 	\rm ${SIMUDIR}/input.namelist
 	\rm fdat zdat
 
-	info_msg "Moving data into DATA and reprise folders..."
-	mv ${SIMUDIR}/${RUNDIR}/phn* ${SIMUDIR}/${RUNDIR}/reprise
-	mv ${SIMUDIR}/${RUNDIR}/phs* ${SIMUDIR}/${RUNDIR}/reprise
-	mv ${SIMUDIR}/${RUNDIR}/pvg* ${SIMUDIR}/${RUNDIR}/DATA
-	mv ${SIMUDIR}/${RUNDIR}/tg* ${SIMUDIR}/${RUNDIR}/DATA
-	mv ${SIMUDIR}/${RUNDIR}/ug* ${SIMUDIR}/${RUNDIR}/DATA
-	mv ${SIMUDIR}/${RUNDIR}/vg* ${SIMUDIR}/${RUNDIR}/DATA
+	info_msg "Moving data into DATA folder..."
+	if ! mv ${SIMUDIR}/${RUNDIR}/pvg* ${SIMUDIR}/${RUNDIR}/DATA; then
+		info_msg "No PV output was found"
+	fi
+	if ! mv ${SIMUDIR}/${RUNDIR}/tg* ${SIMUDIR}/${RUNDIR}/DATA; then
+		info_msg "No temperature output was found"
+	fi
+	if ! mv ${SIMUDIR}/${RUNDIR}/ug* ${SIMUDIR}/${RUNDIR}/DATA; then
+		info_msg "No U-wind output was found"
+	fi
+	if ! mv ${SIMUDIR}/${RUNDIR}/vg* ${SIMUDIR}/${RUNDIR}/DATA; then
+		info_msg "No V-wind output was found"
+	fi
 	info_msg "DONE"
 
 	info_msg "Post processing simulation results"
 	mkdir -p ${SIMUDIR}/${RUNDIR}/IMAGES
-	python3 /usr/local/MIMOSA/post-process-mimosa.py --out-dir ${SIMUDIR}/${RUNDIR}/DATA --im-dir ${SIMUDIR}/${RUNDIR}/IMAGES
+	python3 ${PYTHON_SCRIPT} --out-dir ${SIMUDIR}/${RUNDIR}/DATA --im-dir ${SIMUDIR}/${RUNDIR}/IMAGES
 
 	info_msg "End of MIMOSA simulation"
 
@@ -311,13 +319,13 @@ while [[ $# -gt 0 ]]; do
 	case "$1" in
 		--config) shift; CONFIG_FILE=$1; shift;;
         -h|--help) help; exit 0; shift;;
-		\?) shift; printf "%s - ERROR: unrecognized options\n" "$(date +'%d/%m/%Y - %H:%M:%S')"; exit 1; shift;;
+		\?) shift; err_msg "Unrecognized options"; exit 1; shift;;
 		--) break;;
 	esac
 done
 
 if [[ -z ${CONFIG_FILE} ]]; then
-    printf "%s - ERROR: no configuration file was passed. Exiting script...\n" "$(date +'%d/%m/%Y - %H:%M:%S')";
+    err_msg "No configuration file was passed. Exiting script."
     exit 1
 fi
 
