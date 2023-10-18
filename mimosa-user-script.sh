@@ -29,7 +29,7 @@
 # ----------------------------------------------------------------------------------------------
 
 set -e
-PYTHON_SCRIPT="/usr/local/MIMOSA/post-process-mimosa.py"
+PYTHON_SCRIPT="./post-process-mimosa.py"
 
 function help() {
     bold=$(tput bold)
@@ -282,7 +282,6 @@ EOF
 	info_msg "Simulations for all thetas done"
 
 	\rm ${SIMUDIR}/input.namelist
-	\rm fdat zdat
 
 	info_msg "Moving data into DATA folder..."
 	if ! mv ${SIMUDIR}/${RUNDIR}/pvg* ${SIMUDIR}/${RUNDIR}/DATA; then
