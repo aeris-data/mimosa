@@ -300,7 +300,7 @@ EOF
 
 	info_msg "Post processing simulation results"
 	mkdir -p ${SIMUDIR}/${RUNDIR}/IMAGES
-	python3 ${PYTHON_SCRIPT} --out-dir ${SIMUDIR}/${RUNDIR}/DATA --im-dir ${SIMUDIR}/${RUNDIR}/IMAGES
+	python3 ${PYTHON_SCRIPT} --start-date "${SYEAR}${SMONTH}${SDAY}" --end-date "${EYEAR}${EMONTH}${EDAY}" --out-dir ${SIMUDIR}/${RUNDIR}/DATA --im-dir ${SIMUDIR}/${RUNDIR}/IMAGES
 
 	info_msg "End of MIMOSA simulation"
 

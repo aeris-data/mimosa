@@ -86,8 +86,6 @@ def find_nearest(array, value):
 def create_netcdf_file(fortran_file_filepath: str, output_folder: str) -> str:
     filename = os.path.basename(fortran_file_filepath)
     nc_filepath = f"{output_folder}/{filename}.nc"
-    if os.path.exists(nc_filepath):
-        return nc_filepath
     with FortranFile(fortran_file_filepath, "r") as f:
         all_data_bytes = f.read_record(dtype=np.uint8)
     header_size_bytes = 30*4
@@ -495,8 +493,15 @@ def combine_netcdfs(data_dir: str) -> None:
                     final_dataset.to_netcdf(f"{data_dir}/{var}.{theta}.nc")
                 datasets = [elem.close() for elem in datasets]
 
-def main(output_folder: str, images_folder: str) -> None:
-    list_of_fortran_files = glob.glob(f"{output_folder}/*g*.????")
+def main(start_date: str, end_date: str, output_folder: str, images_folder: str) -> None:
+    LOGGER.info(f"Searching for files between {start_date} and {end_date}...")
+    start_dt = dt.datetime.strptime(start_date, "%y%m%d")
+    end_dt = dt.datetime.strptime(end_date, "%y%m%d")
+    list_of_fortran_files = []
+    while start_dt <= end_dt:
+        date_string = dt.datetime.strftime(start_dt, "%y%m%d")
+        list_of_fortran_files.extend(glob.glob(f"{output_folder}/*g{date_string}*.????"))
+        start_dt = start_dt + dt.timedelta(days=1)
     list_of_fortran_files.sort()
     LOGGER.info("!======================================================================!")
     LOGGER.info("!               __  __ _____ __  __  ____   _____                      !")
@@ -555,13 +560,17 @@ if __name__=="__main__":
     
     parser = argparse.ArgumentParser(description="Post-processing of the MIMOSA Fortran output files for the creation of netCDF copies and results visualization",
                                      formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("--start-date", type=str, help="Start date of the files to process in YYMMDD format")
+    parser.add_argument("--end-date", type=str, help="End date of the files to process in YYMMDD format")
     parser.add_argument("--out-dir", type=str, help="Path to the directory with the Fortran binary output files")
     parser.add_argument("--im-dir",  type=str, help="Path to the directory where to save visualization")
     args = parser.parse_args()
 
+    START_DATE = args.start_date
+    END_DATE   = args.end_date
     OUTPUT_DIR = args.out_dir
     IMAGES_DIR = args.im_dir
 
     global LOGGER
     LOGGER = start_log()
-    main(OUTPUT_DIR, IMAGES_DIR)
+    main(START_DATE, END_DATE, OUTPUT_DIR, IMAGES_DIR)
