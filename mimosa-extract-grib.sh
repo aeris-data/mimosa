@@ -21,26 +21,31 @@
 # class VS start/end dates are correct ---> https://apps.ecmwf.int/mars-catalogue/
 #
 # PARAMETERS SYNTAXE:
-#   START_DATE  = "YYYYMMDD"                    : start date of the data extraction
-#   END_DATE    = "YYYYMMDD"                    : end date of the data extraction
-#   DATA_CLASS  = "class_name"                  : class name of the data ("od"=operational, "e4":ERA40, "ei":ERA-Interim, "ea":ERA5)
-#   DATA_DIR    = "/home/path/to/data/dir"      : path to the data directory
-#   WORKING_DIR = "/home/path/to/working/dir"   : path to the working directory
-########################################
-# PARAMETER DEFINITION ZONE FOR THE USER
-
-START_DATE="20230101"
-END_DATE="20230105"
-DATA_CLASS="od"
-DATA_DIR=$(pwd)
-WORKING_DIR=$(pwd)
-
+#   START_DATE          = "YYYYMMDD"                    : start date of the data extraction
+#   END_DATE            = "YYYYMMDD"                    : end date of the data extraction
+#   DATA_CLASS          = "class_name"                  : class name of the data ("od"=operational, "e4":ERA40, "ei":ERA-Interim, "ea":ERA5)
+#   SPATIAL_RESOLUTION  = "1.125"                       : spatial resolution of the data in degrees
+#   DATA_DIR            = "/home/path/to/data/dir"      : path to the data directory
+#   WORKING_DIR         = "/home/path/to/working/dir"   : path to the working directory
 ########################################
 # DO NOT CHANGE ANYTHING BELOW
 
 set -e
 export MARS_MULTITARGET_STRICT_FORMAT=1
 module load ecmwf-toolbox
+
+function info_msg(){
+	txt=$1
+	echo "$(date +'%d/%m/%Y %H:%M:%S')   [INFO]   ${txt}"
+}
+function err_msg(){
+	txt=$1
+	echo "$(date +'%d/%m/%Y %H:%M:%S')   [ERROR]   ${txt}"
+}
+function warn_msg(){
+	txt=$1
+	echo "$(date +'%d/%m/%Y %H:%M:%S')   [WARNING]   ${txt}"
+}
 
 function count_fc_hours(){
     local _N_DAYS=$1
@@ -83,7 +88,6 @@ function main(){
     ########################################
     check_the_date
     ########################################
-    DATA_DIR="${DATA_DIR}/${ID_NAME}/${START_DATE}_${END_DATE}"
     if [ ! -d ${DATA_DIR} ]; then
         mkdir -p ${DATA_DIR}
     fi
@@ -124,7 +128,7 @@ retrieve,
     time     = 00/06/12/18,
     param    = 152,
     date     = ${START_DATE}/to/${END_DATE},
-    grid     = 1.125/1.125,
+    grid     = ${SPATIAL_RESOLUTION}/${SPATIAL_RESOLUTION},
     area     = 90/0/-90/360,
     target   = "${DATA_DIR}/[date]_[time]_[step].grib"
 retrieve,
@@ -146,7 +150,7 @@ retrieve,
     step     = ${FC_HOURS},
     param    = 152,
     date     = ${START_DATE},
-    grid     = 1.125/1.125,
+    grid     = ${SPATIAL_RESOLUTION}/${SPATIAL_RESOLUTION},
     area     = 90/0/-90/360,
     target   = "${DATA_DIR}/[date]_[time]_[step].grib"
 retrieve,
@@ -167,7 +171,7 @@ retrieve,
     time     = 00/06/12/18,
     param    = 152,
     date     = ${START_DATE}/to/${END_AN_DATE},
-    grid     = 1.125/1.125,
+    grid     = ${SPATIAL_RESOLUTION}/${SPATIAL_RESOLUTION},
     area     = 90/0/-90/360,
     target   = "${DATA_DIR}/[date]_[time]_[step].grib"
 retrieve,
@@ -184,7 +188,7 @@ retrieve,
     step     = 0/to/${FC_HOURS}/by/6,
     param    = 152,
     date     = ${TODAY_DATE},
-    grid     = 1.125/1.125,
+    grid     = ${SPATIAL_RESOLUTION}/${SPATIAL_RESOLUTION},
     area     = 90/0/-90/360,
     target   = "${DATA_DIR}/[date]_[time]_[step].grib"
 retrieve,
@@ -216,4 +220,26 @@ EOF
     done
 }
 
+# ----------------------------------------------------------------------------------------------
+# BASH SCRIPT
+# ----------------------------------------------------------------------------------------------
+
+opts=$(getopt --longoptions "config:,help" --name "$(basename "$0")" --options "h" -- "$@")
+eval set --$opts
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		--config) shift; CONFIG_FILE=$1; shift;;
+        -h|--help) help; exit 0; shift;;
+		\?) shift; err_msg "Unrecognized options"; exit 1; shift;;
+		--) break;;
+	esac
+done
+
+if [[ -z ${CONFIG_FILE} ]]; then
+    err_msg "No configuration file was passed. Exiting script."
+    exit 1
+fi
+
+source ${CONFIG_FILE}
 main

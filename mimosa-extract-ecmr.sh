@@ -21,31 +21,24 @@
 # PARAMETERS SYNTAXE:
 #   START_DATE          = "YYYYMMDD"                    : start date of the data extraction
 #   END_DATE            = "YYYYMMDD"                    : end date of the data extraction
-#   SPATIAL_RESOLUTION  = "1.125"               : spatial resolution of the data in degrees
+#   SPATIAL_RESOLUTION  = "1.125"                       : spatial resolution of the data in degrees
 #   DATA_DIR            = "/home/path/to/data/dir"      : path to the data directory
 #   WORKING_DIR         = "/home/path/to/working/dir"   : path to the working directory
-########################################
-# PARAMETER DEFINITION ZONE FOR THE USER
-
-START_DATE="20230101"
-END_DATE="20230105"
-SPATIAL_RESOLUTION="1.125"
-DATA_DIR=$(pwd)
-WORKING_DIR=$(pwd)
-
 ########################################
 # DO NOT CHANGE ANYTHING BELOW
 
 set -e
 module load ecmwf-toolbox
 
-cd ${DATA_DIR}
+function main(){
 
-NX=$(bc <<< "scale=0; 360/${SPATIAL_RESOLUTION}")
-NY=$(bc <<< "scale=0; 180/${SPATIAL_RESOLUTION} + 1")
-NDATA=$((${NX}*${NY}))
+      cd ${DATA_DIR}
 
-cat > ${WORKING_DIR}/grib_mimosa.f90 << EOF
+      NX=$(bc <<< "scale=0; 360/${SPATIAL_RESOLUTION}")
+      NY=$(bc <<< "scale=0; 180/${SPATIAL_RESOLUTION} + 1")
+      NDATA=$((${NX}*${NY}))
+
+      cat > ${WORKING_DIR}/grib_mimosa.f90 << EOF
 PROGRAM grib_mimosa
      implicit none
 !
@@ -120,13 +113,13 @@ PROGRAM grib_mimosa
 END PROGRAM grib_mimosa
 EOF
 
-gfortran -march=native -O3 -fno-sign-zero -o ${WORKING_DIR}/grib_mimosa ${WORKING_DIR}/grib_mimosa.f90
-if [[ "${WORKING_DIR}" != "${DATA_DIR}" ]]; then cp ${WORKING_DIR}/grib_mimosa ${DATA_DIR}/grib_mimosa; fi
+      gfortran -march=native -O3 -fno-sign-zero -o ${WORKING_DIR}/grib_mimosa ${WORKING_DIR}/grib_mimosa.f90
+      if [[ "${WORKING_DIR}" != "${DATA_DIR}" ]]; then cp ${WORKING_DIR}/grib_mimosa ${DATA_DIR}/grib_mimosa; fi
 
-DATE=${START_DATE}
-while [ ${DATE} -le ${END_DATE} ]; do
+      DATE=${START_DATE}
+      while [ ${DATE} -le ${END_DATE} ]; do
 
-    cat > ${WORKING_DIR}/data.req <<EOF
+      cat > ${WORKING_DIR}/data.req <<EOF
 retrieve,
     class    = od,
     format   = packed,
@@ -144,21 +137,46 @@ retrieve,
     target   = "${DATA_DIR}/data12"
 EOF
 
-      mars ${WORKING_DIR}/data.req
+            mars ${WORKING_DIR}/data.req
 
-      grib_get -w level=1,shortName=t -p dataDate,dataTime ${DATA_DIR}/data00 > ${DATA_DIR}/datafile
-      grib_get_data -w shortName=t ${DATA_DIR}/data00 >> ${DATA_DIR}/datafile
-      grib_get_data -w shortName=u ${DATA_DIR}/data00 >> ${DATA_DIR}/datafile
-      grib_get_data -w shortName=v ${DATA_DIR}/data00 >> ${DATA_DIR}/datafile
-      ${DATA_DIR}/grib_mimosa
+            grib_get -w level=1,shortName=t -p dataDate,dataTime ${DATA_DIR}/data00 > ${DATA_DIR}/datafile
+            grib_get_data -w shortName=t ${DATA_DIR}/data00 >> ${DATA_DIR}/datafile
+            grib_get_data -w shortName=u ${DATA_DIR}/data00 >> ${DATA_DIR}/datafile
+            grib_get_data -w shortName=v ${DATA_DIR}/data00 >> ${DATA_DIR}/datafile
+            ${DATA_DIR}/grib_mimosa
 
-      grib_get -w level=1,shortName=t -p dataDate,dataTime ${DATA_DIR}/data12 > ${DATA_DIR}/datafile
-      grib_get_data -w shortName=t ${DATA_DIR}/data12 >> ${DATA_DIR}/datafile
-      grib_get_data -w shortName=u ${DATA_DIR}/data12 >> ${DATA_DIR}/datafile
-      grib_get_data -w shortName=v ${DATA_DIR}/data12 >> ${DATA_DIR}/datafile
-      ${DATA_DIR}/grib_mimosa
+            grib_get -w level=1,shortName=t -p dataDate,dataTime ${DATA_DIR}/data12 > ${DATA_DIR}/datafile
+            grib_get_data -w shortName=t ${DATA_DIR}/data12 >> ${DATA_DIR}/datafile
+            grib_get_data -w shortName=u ${DATA_DIR}/data12 >> ${DATA_DIR}/datafile
+            grib_get_data -w shortName=v ${DATA_DIR}/data12 >> ${DATA_DIR}/datafile
+            ${DATA_DIR}/grib_mimosa
 
-      DATE=`expr ${DATE} + 1`
+            DATE=`expr ${DATE} + 1`
+      done
+
+      rm ${DATA_DIR}/data00 ${DATA_DIR}/data12 ${DATA_DIR}/datafile
+}
+
+# ----------------------------------------------------------------------------------------------
+# BASH SCRIPT
+# ----------------------------------------------------------------------------------------------
+
+opts=$(getopt --longoptions "config:,help" --name "$(basename "$0")" --options "h" -- "$@")
+eval set --$opts
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		--config) shift; CONFIG_FILE=$1; shift;;
+        -h|--help) help; exit 0; shift;;
+		\?) shift; err_msg "Unrecognized options"; exit 1; shift;;
+		--) break;;
+	esac
 done
 
-rm ${DATA_DIR}/data00 ${DATA_DIR}/data12 ${DATA_DIR}/datafile
+if [[ -z ${CONFIG_FILE} ]]; then
+    err_msg "No configuration file was passed. Exiting script."
+    exit 1
+fi
+
+source ${CONFIG_FILE}
+main
