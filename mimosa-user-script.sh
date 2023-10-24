@@ -35,18 +35,18 @@ function help() {
     bold=$(tput bold)
     normal=$(tput sgr0)
     echo "#       .-'';'-."
-	echo "#     ,'   <_,-.\`.       MIMOSA tool for"
-	echo "#    /)   ,--,_>\_\       high-resolution"
-	echo "#   |'   (      \_ |       potential vorticity"
-	echo "#   |_    \`-.    / |         advection model"
-	echo "#    \\\`-.   ;  _(\`/"
-	echo "#     \`.(    \/ ,' "
-	echo "#       \`-....-'"
+    echo "#     ,'   <_,-.\`.       MIMOSA tool for"
+    echo "#    /)   ,--,_>\_\       high-resolution"
+    echo "#   |'   (      \_ |       potential vorticity"
+    echo "#   |_    \`-.    / |         advection model"
+    echo "#    \\\`-.   ;  _(\`/"
+    echo "#     \`.(    \/ ,' "
+    echo "#       \`-....-'"
     echo "#"
     echo "# This script handles the MIMOSA simulation input"
     echo "# parameters and launches the simulation, as well as"
-	echo "# the post-processing for the output additional"
-	echo "# reformating and results visualization"
+    echo "# the post-processing for the output additional"
+    echo "# reformating and results visualization"
     echo "#"
     echo "# Usage: ${SCRIPT_NAME} [options] arguments"
     echo "# Options:"
@@ -58,73 +58,85 @@ function help() {
 }
 
 function info_msg(){
-	txt=$1
-	echo "$(date +'%d/%m/%Y %H:%M:%S')   [INFO]   ${txt}"
+    txt=$1
+    echo "$(date +'%d/%m/%Y %H:%M:%S')   [INFO]   ${txt}"
 }
 function err_msg(){
-	txt=$1
-	echo "$(date +'%d/%m/%Y %H:%M:%S')   [ERROR]   ${txt}"
+    txt=$1
+    echo "$(date +'%d/%m/%Y %H:%M:%S')   [ERROR]   ${txt}"
 }
 function warn_msg(){
-	txt=$1
-	echo "$(date +'%d/%m/%Y %H:%M:%S')   [WARNING]   ${txt}"
+    txt=$1
+    echo "$(date +'%d/%m/%Y %H:%M:%S')   [WARNING]   ${txt}"
 }
 
 function main(){
-	info_msg "!======================================================================!"
-	info_msg "!               __  __ _____ __  __  ____   _____                      !"
-	info_msg "!              |  \/  |_   _|  \/  |/ __ \ / ____|  /\                 !"
-	info_msg "!              | \  / | | | | \  / | |  | | (___   /  \                !"
-	info_msg "!              | |\/| | | | | |\/| | |  | |\___ \ / /\ \               !"
-	info_msg "!              | |  | |_| |_| |  | | |__| |____) / ____ \              !"
-	info_msg "!              |_|  |_|_____|_|  |_|\____/|_____/_/    \_\             !"
-	info_msg "!======================================================================!"
 
-	############################################
-	# Folders/file organization		           #
-	############################################
+    info_msg "!======================================================================!"
+    info_msg "!       .-'';'-.                                                       !"
+    info_msg "!     ,'   <_,-.\`.        __  __ _____ __  __  ____   _____            !"
+    info_msg "!    /)   ,--,_>\_\      |  \/  |_   _|  \/  |/ __ \ / ____|  /\       !"
+    info_msg "!   |'   (      \_ |     | \  / | | | | \  / | |  | | (___   /  \      !"
+    info_msg "!   |_    \`-.    / |     | |\/| | | | | |\/| | |  | |\___ \ / /\ \     !"
+    info_msg "!    \\\`-.   ;  _(\`/      | |  | |_| |_| |  | | |__| |____) / ____ \    !"
+    info_msg "!     \`.(    \/ ,'       |_|  |_|_____|_|  |_|\____/|_____/_/    \_\   !"
+    info_msg "!       \`-....-'                                                       !"
+    info_msg "!======================================================================!"
 
-	cd ${SIMUDIR}
+    # info_msg "!======================================================================!"
+    # info_msg "!               __  __ _____ __  __  ____   _____                      !"
+    # info_msg "!              |  \/  |_   _|  \/  |/ __ \ / ____|  /\                 !"
+    # info_msg "!              | \  / | | | | \  / | |  | | (___   /  \                !"
+    # info_msg "!              | |\/| | | | | |\/| | |  | |\___ \ / /\ \               !"
+    # info_msg "!              | |  | |_| |_| |  | | |__| |____) / ____ \              !"
+    # info_msg "!              |_|  |_|_____|_|  |_|\____/|_____/_/    \_\             !"
+    # info_msg "!======================================================================!"
 
-	if (( RUN_ID_NUMBER < 10 )) 
-	then
-		RUNDIR="RUN0${NRUN}"
-	else
-		RUNDIR="RUN${NRUN}"
-	fi
+    ############################################
+    # Folders/file organization		           #
+    ############################################
 
-	if [ ! -d "${SIMUDIR}/${RUNDIR}" ]; then mkdir ${SIMUDIR}/${RUNDIR}; fi
-	if [ ! -d "${SIMUDIR}/${RUNDIR}/DATA" ]; then mkdir ${SIMUDIR}/${RUNDIR}/DATA; fi
+    cd ${SIMUDIR}
 
-	if (( INTYPE == 1 )); then
-		if [ ! -d "${SIMUDIR}/ECMR" ]; then
-			err_msg "Can't find ECMR directory"
-			err_msg "End of program"
-			exit 1
-		fi
-	elif (( INTYPE == 2  )); then
-		if [ ! -d "${SIMUDIR}/GRIB" ]; then
-			err_msg "Can't find GRIB directory"
-			err_msg "End of program"
-			exit 1
-		fi
-	fi
+    if (( RUN_ID_NUMBER < 10 )) 
+    then
+        RUNDIR="RUN0${NRUN}"
+    else
+        RUNDIR="RUN${NRUN}"
+    fi
 
-	SRCDIR="/usr/local/MIMOSA"
-	cp ${SRCDIR}/src/mimosa.x ${SIMUDIR}/
+    if [ ! -d "${SIMUDIR}/${RUNDIR}" ]; then mkdir ${SIMUDIR}/${RUNDIR}; fi
+    if [ ! -d "${SIMUDIR}/${RUNDIR}/DATA" ]; then mkdir ${SIMUDIR}/${RUNDIR}/DATA; fi
 
-	info_msg "Start of MIMOSA simulation"
+    if (( INTYPE == 1 )); then
+        if [ ! -d "${SIMUDIR}/ECMR" ]; then
+            err_msg "Can't find ECMR directory"
+            err_msg "End of program"
+            exit 1
+        fi
+    elif (( INTYPE == 2  )); then
+        if [ ! -d "${SIMUDIR}/GRIB" ]; then
+            err_msg "Can't find GRIB directory"
+            err_msg "End of program"
+            exit 1
+        fi
+    fi
 
-	############################################
-	# Parameters configuration                 #
-	############################################
+    SRCDIR="/usr/local/MIMOSA"
+    cp ${SRCDIR}/src/mimosa.x ${SIMUDIR}/
 
-	for i in ${THETA[*]}; do
+    info_msg "Start of MIMOSA simulation"
 
-		info_msg "run for theta = ${i}K"
+    ############################################
+    # Parameters configuration                 #
+    ############################################
 
-		# Generating the input.namelist file for each isentropic level requested
-		cat > ${SIMUDIR}/input.namelist <<EOF
+    for i in ${THETA[*]}; do
+
+        info_msg "run for theta = ${i}K"
+
+        # Generating the input.namelist file for each isentropic level requested
+        cat > ${SIMUDIR}/input.namelist <<EOF
 !======================================================================!
 !               __  __ _____ __  __  ____   _____                      !
 !              |  \/  |_   _|  \/  |/ __ \ / ____|  /\                 !
@@ -276,35 +288,35 @@ stations_out = $STATIONS
 / 
 EOF
 
-		${SIMUDIR}/mimosa.x
-	done
+        ${SIMUDIR}/mimosa.x
+    done
 
-	info_msg "Simulations for all thetas done"
+    info_msg "Simulations for all thetas done"
 
-	\rm ${SIMUDIR}/input.namelist
+    \rm ${SIMUDIR}/input.namelist
 
-	info_msg "Moving data into DATA folder..."
-	if ! mv ${SIMUDIR}/${RUNDIR}/pvg* ${SIMUDIR}/${RUNDIR}/DATA; then
-		info_msg "No PV output was found"
-	fi
-	if ! mv ${SIMUDIR}/${RUNDIR}/tg* ${SIMUDIR}/${RUNDIR}/DATA; then
-		info_msg "No temperature output was found"
-	fi
-	if ! mv ${SIMUDIR}/${RUNDIR}/ug* ${SIMUDIR}/${RUNDIR}/DATA; then
-		info_msg "No U-wind output was found"
-	fi
-	if ! mv ${SIMUDIR}/${RUNDIR}/vg* ${SIMUDIR}/${RUNDIR}/DATA; then
-		info_msg "No V-wind output was found"
-	fi
-	info_msg "DONE"
+    info_msg "Moving data into DATA folder..."
+    if ! mv ${SIMUDIR}/${RUNDIR}/pvg* ${SIMUDIR}/${RUNDIR}/DATA; then
+        info_msg "No PV output was found"
+    fi
+    if ! mv ${SIMUDIR}/${RUNDIR}/tg* ${SIMUDIR}/${RUNDIR}/DATA; then
+        info_msg "No temperature output was found"
+    fi
+    if ! mv ${SIMUDIR}/${RUNDIR}/ug* ${SIMUDIR}/${RUNDIR}/DATA; then
+        info_msg "No U-wind output was found"
+    fi
+    if ! mv ${SIMUDIR}/${RUNDIR}/vg* ${SIMUDIR}/${RUNDIR}/DATA; then
+        info_msg "No V-wind output was found"
+    fi
+    info_msg "DONE"
 
-	info_msg "Post processing simulation results"
-	mkdir -p ${SIMUDIR}/${RUNDIR}/IMAGES
-	python3 ${PYTHON_SCRIPT} --start-date "${SYEAR}${SMONTH}${SDAY}" --end-date "${EYEAR}${EMONTH}${EDAY}" --out-dir ${SIMUDIR}/${RUNDIR}/DATA --im-dir ${SIMUDIR}/${RUNDIR}/IMAGES
+    info_msg "Post processing simulation results"
+    mkdir -p ${SIMUDIR}/${RUNDIR}/IMAGES
+    python3 ${PYTHON_SCRIPT} --start-date "${SYEAR}${SMONTH}${SDAY}" --end-date "${EYEAR}${EMONTH}${EDAY}" --out-dir ${SIMUDIR}/${RUNDIR}/DATA --im-dir ${SIMUDIR}/${RUNDIR}/IMAGES
 
-	info_msg "End of MIMOSA simulation"
+    info_msg "End of MIMOSA simulation"
 
-	exit 0
+    exit 0
 }
 
 # ----------------------------------------------------------------------------------------------
@@ -315,12 +327,12 @@ opts=$(getopt --longoptions "config:,help" --name "$(basename "$0")" --options "
 eval set --$opts
 
 while [[ $# -gt 0 ]]; do
-	case "$1" in
-		--config) shift; CONFIG_FILE=$1; shift;;
+    case "$1" in
+        --config) shift; CONFIG_FILE=$1; shift;;
         -h|--help) help; exit 0; shift;;
-		\?) shift; err_msg "Unrecognized options"; exit 1; shift;;
-		--) break;;
-	esac
+        \?) shift; err_msg "Unrecognized options"; exit 1; shift;;
+        --) break;;
+    esac
 done
 
 if [[ -z ${CONFIG_FILE} ]]; then
