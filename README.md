@@ -15,10 +15,10 @@ The main script is `mimosa-user-script.sh` which needs the input configuration f
 
 ## Input meteorological data extraction
 The input data for the simulations is meteorological data : wind, temperature and logarithm of surface pressure, coming from the ECMWF database. To extract and prepare the data in the correct format, the script `mimosa-extract-grib.sh` or `mimosa-extract-ecmr.sh` should be used. These scripts extract the data either in the GRIB or ASCII (ECMR) format, respectively. The user can configure the start and end date of the data, as well as the spatial resolution, and the data class (only in the grib version). The configuration of two data extractions are as follows:
-    - GRIB data
-        - extracted on ECMWF 137 model levels
-        - the timestep is 3 hours if the requested date range is up to J+6; if the end date exceeds the J+6 limit, the timestep is 6 hours
-    - ECMR data
-        - extracted on 17 pressure levels
-        - the timestep is 12 hours
+- GRIB data
+    - extracted on ECMWF 137 model levels
+    - the timestep is 3 hours if the requested date range is up to J+6; if the end date exceeds the J+6 limit, the timestep is 6 hours
+- ECMR data
+    - extracted on 17 pressure levels
+    - the timestep is 12 hours
 The script must be launched on the ECMWF MARS server (ecs, hpc or other). The data extraction was tested with a member-state user account. Other more public accounts might customize the script based on the MARS services or APIs available for their type of user. The data is extracted and stored in the directory requested in the input configuration; afterwards, the data can be used for the simulation.
