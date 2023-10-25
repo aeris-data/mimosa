@@ -21,4 +21,5 @@ The input data for the simulations is meteorological data : wind, temperature an
 - ECMR data
     - extracted on 17 pressure levels
     - the timestep is 12 hours
+
 The script must be launched on the ECMWF MARS server (ecs, hpc or other). The data extraction was tested with a member-state user account. Other more public accounts might customize the script based on the MARS services or APIs available for their type of user. The data is extracted and stored in the directory requested in the input configuration; afterwards, the data can be used for the simulation.
