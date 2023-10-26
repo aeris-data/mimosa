@@ -30,15 +30,41 @@
 set -e
 module load ecmwf-toolbox
 
-function main(){
+function info_msg(){
+	txt=$1
+	echo "$(date +'%d/%m/%Y %H:%M:%S')   [INFO]   ${txt}"
+}
+function err_msg(){
+	txt=$1
+	echo "$(date +'%d/%m/%Y %H:%M:%S')   [ERROR]   ${txt}"
+}
+function warn_msg(){
+	txt=$1
+	echo "$(date +'%d/%m/%Y %H:%M:%S')   [WARNING]   ${txt}"
+}
 
-      cd ${DATA_DIR}
+function check_the_date(){
+    today_date_obj=$(date -d "$(date +'%Y%m%d')" +%s)
+    end_fc_date=$(date -d "$(date +'%Y%m%d')+10 days" +%s)
+    start_date_obj=$(date -d "${START_DATE}" +%s)
+    end_date_obj=$(date -d "${END_DATE}" +%s)
+    if [[ ${start_date_obj} -gt ${end_date_obj} ]]; then
+        echo  "$(date +'%d/%m/%Y - %H:%M:%S') - ERROR : Your start date is greater that the end date"
+        exit 1
+    elif [[ ${start_date_obj} -gt ${today_date_obj} ]]; then
+        echo  "$(date +'%d/%m/%Y - %H:%M:%S') - ERROR : Your start date is greater that today date"
+        exit 1
+    elif [[ ${end_date_obj} -gt ${end_fc_date} ]]; then
+        echo  "$(date +'%d/%m/%Y - %H:%M:%S') - WARNING : Your end date exceeds TODAY+10 days, extracting data from your start date and up to 10 days from TODAY"
+    fi
+}
 
-      NX=$(bc <<< "scale=0; 360/${SPATIAL_RESOLUTION}")
-      NY=$(bc <<< "scale=0; 180/${SPATIAL_RESOLUTION} + 1")
-      NDATA=$((${NX}*${NY}))
+function write_fortran_code(){
+    NX=$(bc <<< "scale=0; 360/${SPATIAL_RESOLUTION}")
+    NY=$(bc <<< "scale=0; 180/${SPATIAL_RESOLUTION} + 1")
+    NDATA=$((${NX}*${NY}))
 
-      cat > ${WORKING_DIR}/grib_mimosa.f90 << EOF
+    cat > ${WORKING_DIR}/grib_mimosa.f90 << EOF
 PROGRAM grib_mimosa
      implicit none
 !
@@ -67,6 +93,8 @@ PROGRAM grib_mimosa
      data cparam /'T', 'U', 'V'/
      data unit /'    K', '  m/s', '  m/s'/
 
+     call get_command_argument(1, value=nomfic)
+
 !
 !     Open data file for reading.
 !
@@ -90,7 +118,7 @@ PROGRAM grib_mimosa
       mois=((idatmes-20000000)-(ian*10000))/100
       jour=((idatmes-20000000)-(ian*10000))-(mois*100)
       itime=itimes/100
-      write(nomfic,2000) ian,mois,jour,itime
+      !write(nomfic,2000) ian,mois,jour,itime
       open(20,file=nomfic)
 !
 !     icriture du fichier resultat
@@ -113,13 +141,28 @@ PROGRAM grib_mimosa
 END PROGRAM grib_mimosa
 EOF
 
-      gfortran -march=native -O3 -fno-sign-zero -o ${WORKING_DIR}/grib_mimosa ${WORKING_DIR}/grib_mimosa.f90
-      if [[ "${WORKING_DIR}" != "${DATA_DIR}" ]]; then cp ${WORKING_DIR}/grib_mimosa ${DATA_DIR}/grib_mimosa; fi
+    gfortran -march=native -O3 -fno-sign-zero -o ${WORKING_DIR}/grib_mimosa ${WORKING_DIR}/grib_mimosa.f90
+    if [[ "${WORKING_DIR}" != "${DATA_DIR}" ]]; then cp ${WORKING_DIR}/grib_mimosa ${DATA_DIR}/grib_mimosa; fi
+}
 
-      DATE=${START_DATE}
-      while [ ${DATE} -le ${END_DATE} ]; do
+function main(){
+    ########################################
+    check_the_date
+    ########################################
+    if [ ! -d ${DATA_DIR} ]; then
+        mkdir -p ${DATA_DIR}
+    fi
+    if [ ! -d ${WORKING_DIR} ]; then
+        mkdir -p ${WORKING_DIR}
+    fi
+    ########################################
+    write_fortran_code
+    ########################################
+    DATE=$(date -d ${START_DATE} +%s)
+    while [ ${DATE} -le $(date -d ${END_DATE} +%s) ] && [ ${DATE} -lt  $(date -d "$(date +'%Y-%m-%d') + 10 days" +%s) ]; do
 
-      cat > ${WORKING_DIR}/data.req <<EOF
+        if [ ${DATE} -lt $(date -d "$(date +'%Y-%m-%d')" +%s) ]; then
+            cat > ${WORKING_DIR}/data.req <<EOF
 retrieve,
     class    = od,
     format   = packed,
@@ -128,7 +171,7 @@ retrieve,
     level    = 1/2/3/5/7/10/20/30/50/70/100/150/200/250/300/400/500,
     time     = 00,
     param    = t/u/v,
-    date     = ${DATE},
+    date     = $(date -d "@${DATE}" +'%Y%m%d'),
     grid     = ${SPATIAL_RESOLUTION}/${SPATIAL_RESOLUTION},
     area     = 90/0/-90/360,
     target   = "${DATA_DIR}/data00"
@@ -136,25 +179,54 @@ retrieve,
     time     = 12,
     target   = "${DATA_DIR}/data12"
 EOF
+        FILENAME_00="D$(date -d "@${DATE}" +'%y%m%d')00.ECMR"
+        FILENAME_12="D$(date -d "@${DATE}" +'%y%m%d')12.ECMR"
+        fi
 
-            mars ${WORKING_DIR}/data.req
+        if [ ${DATE} -ge $(date -d "$(date +'%Y-%m-%d')" +%s) ]; then
+            st=$(date -d "$(date +'%Y-%m-%d')" +%s)
+            en=${DATE}
+            fc_hour=$((((en-st)/86400)*24))
+            cat > ${WORKING_DIR}/data.req <<EOF
+retrieve,
+    class    = od,
+    format   = packed,
+    type     = fc,
+    levtype  = pl,
+    level    = 1/2/3/5/7/10/20/30/50/70/100/150/200/250/300/400/500,
+    time     = 00,
+    step     = ${fc_hour},
+    param    = t/u/v,
+    date     = $(date +'%Y%m%d'),
+    grid     = ${SPATIAL_RESOLUTION}/${SPATIAL_RESOLUTION},
+    area     = 90/0/-90/360,
+    target   = "${DATA_DIR}/data00"
+retrieve,
+    time     = 00,
+    step     = $((${fc_hour}+12)),
+    target   = "${DATA_DIR}/data12"
+EOF
+        FILENAME_00=D$(date -d "$(date +'%Y%m%d') + ${fc_hour} hours" +%y%m%d%H).ECMR
+        FILENAME_12=D$(date -d "$(date +'%Y%m%d') + $((${fc_hour}+12)) hours" +%y%m%d%H).ECMR
+        fi
 
-            grib_get -w level=1,shortName=t -p dataDate,dataTime ${DATA_DIR}/data00 > ${DATA_DIR}/datafile
-            grib_get_data -w shortName=t ${DATA_DIR}/data00 >> ${DATA_DIR}/datafile
-            grib_get_data -w shortName=u ${DATA_DIR}/data00 >> ${DATA_DIR}/datafile
-            grib_get_data -w shortName=v ${DATA_DIR}/data00 >> ${DATA_DIR}/datafile
-            ${DATA_DIR}/grib_mimosa
+        mars ${WORKING_DIR}/data.req
 
-            grib_get -w level=1,shortName=t -p dataDate,dataTime ${DATA_DIR}/data12 > ${DATA_DIR}/datafile
-            grib_get_data -w shortName=t ${DATA_DIR}/data12 >> ${DATA_DIR}/datafile
-            grib_get_data -w shortName=u ${DATA_DIR}/data12 >> ${DATA_DIR}/datafile
-            grib_get_data -w shortName=v ${DATA_DIR}/data12 >> ${DATA_DIR}/datafile
-            ${DATA_DIR}/grib_mimosa
+        grib_get -w level=1,shortName=t -p dataDate,dataTime ${DATA_DIR}/data00 > ${DATA_DIR}/datafile
+        grib_get_data -w shortName=t ${DATA_DIR}/data00 >> ${DATA_DIR}/datafile
+        grib_get_data -w shortName=u ${DATA_DIR}/data00 >> ${DATA_DIR}/datafile
+        grib_get_data -w shortName=v ${DATA_DIR}/data00 >> ${DATA_DIR}/datafile
+        ${DATA_DIR}/grib_mimosa ${FILENAME_00}
 
-            DATE=`expr ${DATE} + 1`
-      done
+        grib_get -w level=1,shortName=t -p dataDate,dataTime ${DATA_DIR}/data12 > ${DATA_DIR}/datafile
+        grib_get_data -w shortName=t ${DATA_DIR}/data12 >> ${DATA_DIR}/datafile
+        grib_get_data -w shortName=u ${DATA_DIR}/data12 >> ${DATA_DIR}/datafile
+        grib_get_data -w shortName=v ${DATA_DIR}/data12 >> ${DATA_DIR}/datafile
+        ${DATA_DIR}/grib_mimosa ${FILENAME_12}
 
-      rm ${DATA_DIR}/data00 ${DATA_DIR}/data12 ${DATA_DIR}/datafile
+        DATE=`expr ${DATE} + 86400`
+    done
+
 }
 
 # ----------------------------------------------------------------------------------------------
