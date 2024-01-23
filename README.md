@@ -2,12 +2,16 @@
 
 MIMOSA is a high-resolution potential vorticity advection model developed in Fortran by A. Hauchecorne (Hauchecorne et al., 2002). It is initialized at a time `t` from ECMWF data (horizontal wind fields U and V, temperature and pressure) on an orthogonal grid centered on the north pole. MIMOSA calculates then advects the potential vorticity on isentropic surfaces with a spacial resolution of 1/3 or 1/6 of a degree.
 
+![mimosa_logo](mimosa_logo.png)
+
 ## Requirements
 The MIMOSA tool is containerized into a Singularity container so one must have Singularity installed on the host system intended for simulations.
 
 ## Installation
-1. `git clone https://github.com/aeris-data/mimosa.git`
-2. `sudo singularity build ./mimosa.sif ./mimosa-container.def`
+```
+git clone https://github.com/aeris-data/mimosa.git
+sudo singularity build ./mimosa.sif ./mimosa-container.def
+```
 The `singularity build` command will build the container `mimosa.sif` from its definition file, using the source files got from the git repo; so for the build it is important to call the command from the git repo directory that one has made. ⚠️ ***The build requires sudo rights.*** Afterwards, the sif image can be placed anywhere (even on another system) independently of the source files. To run the image no sudo rights are required.
 
 ## Usage
