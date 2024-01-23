@@ -30,6 +30,7 @@
 
 set -e
 SCRIPT_PATH=$0
+SCRIPT_NAME=$(basename ${SCRIPT_PATH})
 PYTHON_SCRIPT="$(dirname ${SCRIPT_PATH})/post-process-mimosa.py"
 
 function help() {
