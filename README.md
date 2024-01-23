@@ -2,7 +2,9 @@
 
 MIMOSA is a high-resolution potential vorticity advection model developed in Fortran by A. Hauchecorne (Hauchecorne et al., 2002). It is initialized at a time `t` from ECMWF data (horizontal wind fields U and V, temperature and pressure) on an orthogonal grid centered on the north pole. MIMOSA calculates then advects the potential vorticity on isentropic surfaces with a spacial resolution of 1/3 or 1/6 of a degree.
 
-![mimosa_logo](mimosa_logo.png)
+<p align="center">
+    <img width="200" src="mimosa_logo.png" alt="MIMOSA logo">
+</p>
 
 ## Requirements
 The MIMOSA tool is containerized into a Singularity container so one must have Singularity installed on the host system intended for simulations.
