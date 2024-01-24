@@ -175,7 +175,7 @@ def create_netcdf_file(fortran_file_filepath: str, output_folder: str) -> str:
         var.long_name = VARIABLES_INFO[var_name]["long_name"]
         var[:] = data_values
         # ------------------------------------------------------------------------------------
-        return nc_filepath
+    return nc_filepath
 
 def create_figure_pv(netcdf_file: str, images_folder: str) -> None:
     gaussian_kernel_sigma = 4
