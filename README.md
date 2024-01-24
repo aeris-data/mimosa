@@ -24,7 +24,12 @@ The main script is `mimosa-user-script.sh` which needs the input configuration f
 The script must be launched inside the Singularity container. In the simulation working directory the one must have a tree folder `GRIB/[year of the data in YYYY format]/[month of the data in MM format]` where the meteorological GRIB files with names `DYYMMDDHH.grib` must be stored. The outputs of the simulation are : estimated temperature and potential vorticity in binary and netCDF format + PNG map plots of the data. More details about input/output and folder structure are in the manual `SEDOO-AERIS-DT-005-MAG_MIMOSA_ATBD.pdf`.
 
 ## Input meteorological data extraction
-The input data for the simulations is meteorological data : wind, temperature and logarithm of surface pressure, coming from the ECMWF database. To extract and prepare the data in the correct format, the script `mimosa-extract-grib.sh` or `mimosa-extract-ecmr.sh` should be used. These scripts extract the data either in the GRIB or ASCII (ECMR) format, respectively. The user can configure the start and end date of the data, as well as the spatial resolution, and the data class (only in the grib version). The configuration of two data extractions are as follows:
+The input data for the simulations is meteorological data : wind, temperature and logarithm of surface pressure, coming from the ECMWF database. To extract and prepare the data in the correct format, the script `mimosa-extract-grib.sh` or `mimosa-extract-ecmr.sh` should be used :
+```
+./mimosa-extract-grib.sh --config grib.conf
+./mimosa-extract-ecmr.sh --config ecmr.conf
+```
+These scripts extract the data either in the GRIB or ASCII (ECMR) format, respectively. The user can configure the start and end date of the data, as well as the spatial resolution, and the data class (only in the grib version). The configuration of two data extractions are as follows:
 - GRIB data
     - extracted on ECMWF 137 model levels
     - the timestep is 3 hours if the requested date range is up to J+6; if the end date exceeds the J+6 limit, the timestep is 6 hours
