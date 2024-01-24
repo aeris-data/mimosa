@@ -4,7 +4,7 @@ From: ubuntu:20.04
 %files
     ./src /usr/local/MIMOSA/
     ./post-process-mimosa.py /usr/local/MIMOSA/
-    ./mimosa_user_script.sh /usr/local/MIMOSA/
+    ./mimosa-user-script.sh /usr/local/MIMOSA/
 
 %post
     apt-get update -y && apt-get upgrade -y && apt-get install -y software-properties-common && DEBIAN_FRONTEND="noninteractive" TZ="Europe" apt-get install -y tzdata
