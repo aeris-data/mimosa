@@ -34,6 +34,94 @@ set -e
 export MARS_MULTITARGET_STRICT_FORMAT=1
 module load ecmwf-toolbox
 
+function help() {
+    bold=$(tput bold)
+    normal=$(tput sgr0)
+    echo "# ########################################"
+    echo "# #                          __   _      #"
+    echo "# #  SCRIPT FOR            _(  )_( )_    #"
+    echo "# #   THE ECMWF           (_   _    _)   #"
+    echo "# #    DATA EXTRACTION   / /(_) (__)     #"
+    echo "# #                     / / / / / /      #"
+    echo "# #                    / / / / / /       #"
+    echo "# ########################################"
+    echo "#"
+    echo "# ${bold}${SCRIPT_NAME}${normal} script extracts and formats the ECMWF data into"
+    echo "# files that are accepted by the simulation MIMOSA tool."
+    echo "#"
+    echo "# The script knows which meterological data and variables are needed; the user input"
+    echo "# must only define the dates, the spatial resolution and additional logistical information,"
+    echo "# like the data directory and the working directory."
+    echo "# The extraction is performed on the MARS server, so the script should be launched on this server."
+    echo "#"
+    echo "# Usage: ${SCRIPT_NAME} [options] arguments"
+    echo "# Options:"
+    echo "#   ${bold}-h, --help${normal}     Show this help message and exit"
+    echo "# Arguments:"
+    echo "#   ${bold}--config conf_filepath${normal}  This argument must correspond to the configuration"
+    echo "# file where the user defines input parameters needed for the extraction See an example of a"
+    echo "# configuration file below."
+    echo "#"
+    echo "# +--------------------------------------------------------------------------------+"
+    echo "# | Example of the content in the configuration file                               |"
+    echo "# |                                                                                |"
+    echo "# | Example filename : ${bold}my_parameters.conf${normal}                                          |"
+    echo "# | Example content below :                                                        |"
+    echo "# |                                                                                |"
+    echo "# | START_DATE='20230101'                                                          |"
+    echo "# | END_DATE='20230105'                                                            |"
+    echo "# | DATA_CLASS='od'                                                                |"
+    echo "# | SPATIAL_RESOLUTION='1.125'                                                     |"
+    echo "# | DATA_DIR='/my/dir/for/data'                                                    |"
+    echo "# | WORKING_DIR='/working/dir/for/aux/files'                                       |"
+    echo "# +--------------------------------------------------------------------------------+"
+}
+
+function check_args() {
+    if [[ -z ${START_DATE} ]]; then
+        err_msg "No start date was defined. Exiting script."
+        exit 1
+    fi
+    if [[ -z ${END_DATE} ]]; then
+        err_msg "No end date was defined. Exiting script."
+        exit 1
+    fi
+    if [[ -z ${DATA_CLASS} ]]; then
+        err_msg "No data class was defined. Exiting script."
+        exit 1
+    fi
+    if [[ -z ${SPATIAL_RESOLUTION} ]]; then
+        err_msg "No spatial resolution was defined. Exiting script."
+        exit 1
+    fi
+    if [[ -z ${DATA_DIR} ]]; then
+        err_msg "No data directory was defined. Exiting script."
+        exit 1
+    fi
+    if [[ -z ${WORKING_DIR} ]]; then
+        err_msg "No working directory was defined. Exiting script."
+        exit 1
+    fi
+    if [[ ${START_DATE} =~ ^[0-9]{8}$ ]]; then
+        exit_status=0
+    else
+        err_msg "Starting date 'START_DATE' is not in the correct format YYYYMMDD"
+        exit 1
+    fi
+    if [[ ${END_DATE} =~ ^[0-9]{8}$ ]]; then
+        exit_status=0
+    else
+        err_msg "Ending date 'END_DATE' is not in the correct format YYYYMMDD"
+        exit 1
+    fi
+    if [ $START_DATE -le $END_DATE ]; then
+        exit_status=0
+    else
+        err_msg "Start date is greater than end date"
+        exit 1
+    fi
+}
+
 function info_msg(){
 	txt=$1
 	echo "$(date +'%d/%m/%Y %H:%M:%S')   [INFO]   ${txt}"
@@ -223,76 +311,6 @@ EOF
     done
 }
 
-function help() {
-    bold=$(tput bold)
-    normal=$(tput sgr0)
-    echo "# ########################################"
-    echo "# #                          __   _      #"
-    echo "# #  SCRIPT FOR            _(  )_( )_    #"
-    echo "# #   THE ECMWF           (_   _    _)   #"
-    echo "# #    DATA EXTRACTION   / /(_) (__)     #"
-    echo "# #                     / / / / / /      #"
-    echo "# #                    / / / / / /       #"
-    echo "# ########################################"
-    echo "#"
-    echo "# ${bold}${SCRIPT_NAME}${normal} script extracts and formats the ECMWF data into"
-    echo "# files that are accepted by the simulation MIMOSA tool."
-    echo "#"
-    echo "# The script knows which meterological data and variables are needed; the user input"
-    echo "# must only define the dates, the spatial resolution and additional logistical information,"
-    echo "# like the data directory and the working directory."
-    echo "# The extraction is performed on the MARS server, so the script should be launched on this server."
-    echo "#"
-    echo "# Usage: ${SCRIPT_NAME} [options] arguments"
-    echo "# Options:"
-    echo "#   ${bold}-h, --help${normal}     Show this help message and exit"
-    echo "# Arguments:"
-    echo "#   ${bold}--config conf_filepath${normal}  This argument must correspond to the configuration"
-    echo "# file where the user defines input parameters needed for the extraction See an example of a"
-    echo "# configuration file below."
-    echo "#"
-    echo "# +--------------------------------------------------------------------------------+"
-    echo "# | Example of the content in the configuration file                               |"
-    echo "# |                                                                                |"
-    echo "# | Example filename : ${bold}my_parameters.conf${normal}                                          |"
-    echo "# | Example content below :                                                        |"
-    echo "# |                                                                                |"
-    echo "# | START_DATE='20230101'                                                          |"
-    echo "# | END_DATE='20230105'                                                            |"
-    echo "# | DATA_CLASS='od'                                                                |"
-    echo "# | SPATIAL_RESOLUTION='1.125'                                                     |"
-    echo "# | DATA_DIR='/my/dir/for/data'                                                    |"
-    echo "# | WORKING_DIR='/working/dir/for/aux/files'                                       |"
-    echo "# +--------------------------------------------------------------------------------+"
-}
-
-function check_args() {
-    if [[ -z ${START_DATE} ]]; then
-        err_msg "No start date was defined. Exiting script."
-        exit 1
-    fi
-    if [[ -z ${END_DATE} ]]; then
-        err_msg "No end date was defined. Exiting script."
-        exit 1
-    fi
-    if [[ -z ${DATA_CLASS} ]]; then
-        err_msg "No data class was defined. Exiting script."
-        exit 1
-    fi
-    if [[ -z ${SPATIAL_RESOLUTION} ]]; then
-        err_msg "No spatial resolution was defined. Exiting script."
-        exit 1
-    fi
-    if [[ -z ${DATA_DIR} ]]; then
-        err_msg "No data directory was defined. Exiting script."
-        exit 1
-    fi
-    if [[ -z ${WORKING_DIR} ]]; then
-        err_msg "No working directory was defined. Exiting script."
-        exit 1
-    fi
-}
-
 # ----------------------------------------------------------------------------------------------
 # BASH SCRIPT
 # ----------------------------------------------------------------------------------------------
@@ -315,4 +333,5 @@ if [[ -z ${CONFIG_FILE} ]]; then
 fi
 
 source ${CONFIG_FILE}
+check_args
 main
