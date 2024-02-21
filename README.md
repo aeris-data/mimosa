@@ -30,6 +30,19 @@ The main script is `mimosa-user-script.sh` which needs the input configuration f
 
 In the simulation working directory the one must have a tree folder `GRIB/[year of the data in YYYY format]/[month of the data in MM format]` where the meteorological GRIB files with names `DYYMMDDHH.grib` must be stored. The outputs of the simulation are : estimated temperature and potential vorticity in binary and netCDF format + PNG map plots of the data. More details about input/output and folder structure are in the manual `SEDOO-AERIS-DT-005-MAG_MIMOSA_ATBD.pdf`.
 
+There are two possible ways to launch the simulation inside the Singularity container:
+- interactive mode (run a shell within a container, then launch the command within the shell of the container)
+
+```
+$ singularity exec mimosa-image.sif ./mimosa-user-script.sh --config user-config.conf
+```
+
+- one-line command (run a command within a container, wait for the end of simulation to regain control of the shell)
+
+```
+$ singularity shell mimosa-image.sif
+Singularity> ./mimosa-user-script.sh --config user-config.conf
+```
 
 ### Bind option
 
