@@ -16,7 +16,7 @@ sudo singularity build ./mimosa.sif ./mimosa-container.def
 ```
 The `singularity build` command will build the container `mimosa.sif` from its definition file, using the source files got from the git repo; so for the build it is important to call the command from the git repo directory that one has made. 
 
-⚠️ ***The build requires sudo rights.***
+⚠️ ***The build requires either sudo rights or being able to use `--fakeroot` option (in a case of a multi-user server).*** 
 
 Afterwards, the sif image can be placed anywhere (even on another system) independently of the source files. To run the image no sudo rights are required.
 
