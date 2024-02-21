@@ -39,6 +39,7 @@ $ singularity exec [--bind path1,path2] mimosa-image.sif ./mimosa-user-script.sh
 - interactive mode (run a shell within a container, then launch the command within the shell of the container)
 ```
 $ singularity shell [--bind path1,path2] mimosa-image.sif
+Singularity>
 Singularity> ./mimosa-user-script.sh --config user-config.conf
 ```
 
