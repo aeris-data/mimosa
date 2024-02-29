@@ -223,7 +223,12 @@ def create_figure_pv(netcdf_file: str, images_folder: str) -> None:
     # ------------------------------------------------------------------------------------
     image_filepath = f"{images_folder}/{os.path.basename(netcdf_file)[:-3].replace('pvg','pvn')}.png"
     if not os.path.exists(image_filepath):
-        fig = plt.figure()
+        fig, ax = plt.subplots(subplot_kw={'projection': ccrs.AzimuthalEquidistant(central_latitude=90, central_longitude=0)})
+        theta = np.linspace(0, 2*np.pi, 100)
+        center, radius = [0.5, 0.5], 0.5
+        verts = np.vstack([np.sin(theta), np.cos(theta)]).T
+        circle = mpath.Path(verts * radius + center)
+        ax.set_boundary(circle, transform=ax.axes.transAxes)
         p = (ds.pv[0,0,:,:]).plot.contourf(levels=PV_LEVELS[theta_level],
                                         transform=ccrs.PlateCarree(),
                                         subplot_kws={"projection": ccrs.NorthPolarStereo()},
@@ -235,6 +240,7 @@ def create_figure_pv(netcdf_file: str, images_folder: str) -> None:
         p.axes.coastlines(color="w", linewidth=1.5)
         obj = p.axes.gridlines(linestyle="--", linewidth=0.5)
         p.axes.set_extent([-180, 180, 30, 90], ccrs.PlateCarree())
+        obj.ylocator = mticker.FixedLocator([80,70,60,50,40,30])
         title = f"MIMOSA Potential Vorticity\nNorth Pole (PV=PV)\ntime = {format_datetime(str(ds.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {theta_level} [K]"
         p.axes.set_title(title, fontsize=15)
         p.colorbar.ax.yaxis.label.set_fontsize(15)
@@ -250,7 +256,12 @@ def create_figure_pv(netcdf_file: str, images_folder: str) -> None:
     # ------------------------------------------------------------------------------------
     image_filepath = f"{images_folder}/{os.path.basename(netcdf_file)[:-3].replace('pvg','pvs')}.png"
     if not os.path.exists(image_filepath):
-        fig = plt.figure()
+        fig, ax = plt.subplots(subplot_kw={'projection': ccrs.AzimuthalEquidistant(central_latitude=-90, central_longitude=0)})
+        theta = np.linspace(0, 2*np.pi, 100)
+        center, radius = [0.5, 0.5], 0.5
+        verts = np.vstack([np.sin(theta), np.cos(theta)]).T
+        circle = mpath.Path(verts * radius + center)
+        ax.set_boundary(circle, transform=ax.axes.transAxes)
         p = (-ds.pv[0,0,:,:]).plot.contourf(levels=PV_LEVELS[theta_level],
                                         transform=ccrs.PlateCarree(),
                                         subplot_kws={"projection": ccrs.SouthPolarStereo()},
@@ -262,6 +273,7 @@ def create_figure_pv(netcdf_file: str, images_folder: str) -> None:
         p.axes.coastlines(color="w", linewidth=1.5)
         obj = p.axes.gridlines(linestyle="--", linewidth=0.5)
         p.axes.set_extent([-180, 180, -90, -30], ccrs.PlateCarree())
+        obj.ylocator = mticker.FixedLocator([-80,-70,-60,-50,-40,-30])
         title = f"MIMOSA Potential Vorticity\nSouth Pole (PV=-PV)\ntime = {format_datetime(str(ds.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {theta_level} [K]"
         p.axes.set_title(title, fontsize=15)
         p.colorbar.ax.yaxis.label.set_fontsize(15)
@@ -311,11 +323,48 @@ def create_figure_t(netcdf_file: str, images_folder: str) -> None:
         fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
         plt.close(fig)
     # ------------------------------------------------------------------------------------
+    # TROPICAL PLOT
+    # ------------------------------------------------------------------------------------
+    image_filepath = f"{images_folder}/{os.path.basename(netcdf_file)[:-3].replace('tg','tt')}.png"
+    if not os.path.exists(image_filepath):
+        fig = plt.figure()
+        p = (ds.t[0,0,:,:]).plot.contourf(levels=T_LEVELS,
+                                        transform=ccrs.PlateCarree(),
+                                        subplot_kws={"projection": ccrs.PlateCarree()},
+                                        cmap=custom_cmap,
+                                        add_colorbar=True,
+                                        cbar_kwargs={"fraction": 0.023})
+        p1 = (ds.t[0,0,:,:]).plot.contour(levels=T_LEVELS,
+                                        transform=ccrs.PlateCarree(),
+                                        subplot_kws={"projection": ccrs.PlateCarree()},
+                                        colors="k", linestyles="-", linewidths=0.5)
+        p.axes.coastlines(color="w", linewidth=1.5)
+        obj = p.axes.gridlines(linestyle="--", linewidth=0.5, draw_labels=True)
+        obj.top_labels   = False
+        obj.right_labels = False
+        obj.xlabel_style = {"size":8}
+        obj.ylabel_style = {"size":8}
+        p.axes.set_extent([-180, 180, -30, 30], ccrs.PlateCarree())
+        title = f"MIMOSA Temperature [K]\ntime = {format_datetime(str(ds.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {theta_level} [K]"
+        p.axes.set_title(title, fontsize=10)
+        p.colorbar.ax.yaxis.label.set_fontsize(10)
+        p.colorbar.ax.yaxis.label.set_rotation(270)
+        p.colorbar.ax.yaxis.label.set_verticalalignment("baseline")
+        p.colorbar.set_ticks(T_LEVELS)
+        p.colorbar.ax.tick_params(labelsize=8)
+        fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
+        plt.close(fig)
+    # ------------------------------------------------------------------------------------
     # NORTH POLE PLOT
     # ------------------------------------------------------------------------------------
     image_filepath = f"{images_folder}/{os.path.basename(netcdf_file)[:-3].replace('tg','tn')}.png"
     if not os.path.exists(image_filepath):
-        fig = plt.figure()
+        fig, ax = plt.subplots(subplot_kw={'projection': ccrs.AzimuthalEquidistant(central_latitude=90, central_longitude=0)})
+        theta = np.linspace(0, 2*np.pi, 100)
+        center, radius = [0.5, 0.5], 0.5
+        verts = np.vstack([np.sin(theta), np.cos(theta)]).T
+        circle = mpath.Path(verts * radius + center)
+        ax.set_boundary(circle, transform=ax.axes.transAxes)
         p = (ds.t[0,0,:,:]).plot.contourf(levels=T_LEVELS,
                                         transform=ccrs.PlateCarree(),
                                         subplot_kws={"projection": ccrs.NorthPolarStereo()},
@@ -327,6 +376,7 @@ def create_figure_t(netcdf_file: str, images_folder: str) -> None:
         p.axes.coastlines(color="w", linewidth=1.5)
         obj = p.axes.gridlines(linestyle="--", linewidth=0.5)
         p.axes.set_extent([-180, 180, 30, 90], ccrs.PlateCarree())
+        obj.ylocator = mticker.FixedLocator([80,70,60,50,40,30])
         title = f"MIMOSA Temperature [K]\nNorth Pole\ntime = {format_datetime(str(ds.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {theta_level} [K]"
         p.axes.set_title(title, fontsize=15)
         p.colorbar.ax.yaxis.label.set_fontsize(15)
@@ -341,7 +391,12 @@ def create_figure_t(netcdf_file: str, images_folder: str) -> None:
     # ------------------------------------------------------------------------------------
     image_filepath = f"{images_folder}/{os.path.basename(netcdf_file)[:-3].replace('tg','ts')}.png"
     if not os.path.exists(image_filepath):
-        fig = plt.figure()
+        fig, ax = plt.subplots(subplot_kw={'projection': ccrs.AzimuthalEquidistant(central_latitude=-90, central_longitude=0)})
+        theta = np.linspace(0, 2*np.pi, 100)
+        center, radius = [0.5, 0.5], 0.5
+        verts = np.vstack([np.sin(theta), np.cos(theta)]).T
+        circle = mpath.Path(verts * radius + center)
+        ax.set_boundary(circle, transform=ax.axes.transAxes)
         p = (ds.t[0,0,:,:]).plot.contourf(levels=T_LEVELS,
                                         transform=ccrs.PlateCarree(),
                                         subplot_kws={"projection": ccrs.SouthPolarStereo()},
@@ -353,6 +408,7 @@ def create_figure_t(netcdf_file: str, images_folder: str) -> None:
         p.axes.coastlines(color="w", linewidth=1.5)
         obj = p.axes.gridlines(linestyle="--", linewidth=0.5)
         p.axes.set_extent([-180, 180, -90, -30], ccrs.PlateCarree())
+        obj.ylocator = mticker.FixedLocator([-80,-70,-60,-50,-40,-30])
         title = f"MIMOSA Temperature [K]\nSouth Pole\ntime = {format_datetime(str(ds.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {theta_level} [K]"
         p.axes.set_title(title, fontsize=15)
         p.colorbar.ax.yaxis.label.set_fontsize(15)
@@ -418,7 +474,12 @@ def create_figure_wind(netcdf_file: str, images_folder: str) -> None:
     # ------------------------------------------------------------------------------------
     image_filepath = f"{images_folder}/w{os.path.basename(u_file)[1:-3].replace('g','n')}.png"
     if not os.path.exists(image_filepath):
-        fig = plt.figure()
+        fig, ax = plt.subplots(subplot_kw={'projection': ccrs.AzimuthalEquidistant(central_latitude=90, central_longitude=0)})
+        theta = np.linspace(0, 2*np.pi, 100)
+        center, radius = [0.5, 0.5], 0.5
+        verts = np.vstack([np.sin(theta), np.cos(theta)]).T
+        circle = mpath.Path(verts * radius + center)
+        ax.set_boundary(circle, transform=ax.axes.transAxes)
         p = ds_wind.magnitude.plot.imshow(x="lon",y="lat",
                                         transform=ccrs.PlateCarree(),
                                         subplot_kws={"projection": ccrs.NorthPolarStereo()},
@@ -437,6 +498,7 @@ def create_figure_wind(netcdf_file: str, images_folder: str) -> None:
         p.axes.coastlines(color="w", linewidth=1.5)
         obj = p.axes.gridlines(linestyle="--", linewidth=0.5)
         p.axes.set_extent([-180, 180, 30, 90], ccrs.PlateCarree())
+        obj.ylocator = mticker.FixedLocator([80,70,60,50,40,30])
         title = f"MIMOSA Wind [m.s-]\nNorth Pole\ntime = {format_datetime(str(ds_u.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {ds_u.isentropic_level_Kelvin} [K]"
         p.axes.set_title(title, fontsize=10)
         p.colorbar.ax.yaxis.label.set_fontsize(10)
@@ -447,11 +509,16 @@ def create_figure_wind(netcdf_file: str, images_folder: str) -> None:
         fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
         plt.close(fig)
     # ------------------------------------------------------------------------------------
-    # NORTH POLE PLOT
+    # SOUTH POLE PLOT
     # ------------------------------------------------------------------------------------
     image_filepath = f"{images_folder}/w{os.path.basename(u_file)[1:-3].replace('g','s')}.png"
     if not os.path.exists(image_filepath):
-        fig = plt.figure()
+        fig, ax = plt.subplots(subplot_kw={'projection': ccrs.AzimuthalEquidistant(central_latitude=-90, central_longitude=0)})
+        theta = np.linspace(0, 2*np.pi, 100)
+        center, radius = [0.5, 0.5], 0.5
+        verts = np.vstack([np.sin(theta), np.cos(theta)]).T
+        circle = mpath.Path(verts * radius + center)
+        ax.set_boundary(circle, transform=ax.axes.transAxes)
         p = ds_wind.magnitude.plot.imshow(x="lon",y="lat",
                                         transform=ccrs.PlateCarree(),
                                         subplot_kws={"projection": ccrs.SouthPolarStereo()},
@@ -470,6 +537,7 @@ def create_figure_wind(netcdf_file: str, images_folder: str) -> None:
         p.axes.coastlines(color="w", linewidth=1.5)
         obj = p.axes.gridlines(linestyle="--", linewidth=0.5)
         p.axes.set_extent([-180, 180, -90, -30], ccrs.PlateCarree())
+        obj.ylocator = mticker.FixedLocator([-80,-70,-60,-50,-40,-30])
         title = f"MIMOSA Wind [m.s-]\nSouth Pole\ntime = {format_datetime(str(ds_u.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {ds_u.isentropic_level_Kelvin} [K]"
         p.axes.set_title(title, fontsize=10)
         p.colorbar.ax.yaxis.label.set_fontsize(10)
