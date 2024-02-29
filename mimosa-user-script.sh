@@ -114,6 +114,7 @@ function main(){
             make_symlink=0
         else
             make_symlink=1
+        fi
     else
         # echo "INDATADIR is not a direct subdirectory of SIMUDIR."
         make_symlink=1
