@@ -28,6 +28,8 @@ import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter
 import logging
 from scipy.io import FortranFile
+import matplotlib.ticker as mticker
+import matplotlib.path as mpath
 
 sys.path.append('/usr/local/idl-colorbars-python')
 import idl_colorbars
