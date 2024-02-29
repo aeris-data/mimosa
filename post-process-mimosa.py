@@ -36,19 +36,19 @@ custom_cmap = idl_colorbars.getcmap(5)
 VARIABLES_INFO = {"pvg":{"var_name":"pv",
                          "units":"-",
                          "standard_name":"potential_vorticity",
-                         "long_name":"MIMOSA output potential vorticity"},
+                         "long_name":"MIMOSA potential vorticity"},
                   "tg":{"var_name":"t",
                         "units":"K",
                         "standard_name":"temperature",
-                        "long_name":"MIMOSA output temperature"},
+                        "long_name":"MIMOSA temperature"},
                   "ug":{"var_name":"u",
                         "units":"m.s-1",
                         "standard_name":"u_component_of_wind",
-                        "long_name":"MIMOSA output U wind fields"},
+                        "long_name":"MIMOSA U wind fields"},
                   "vg":{"var_name":"v",
                         "units":"m.s-1",
                         "standard_name":"v_component_of_wind",
-                        "long_name":"MIMOSA output V wind fields"}}
+                        "long_name":"MIMOSA V wind fields"}}
 
 PV_LEVELS = {380:np.arange(0,32,1.5),
              435:np.arange(0,53,2.5),
@@ -212,6 +212,8 @@ def create_figure_pv(netcdf_file: str, images_folder: str) -> None:
         title = f"MIMOSA Potential Vorticity\ntime = {format_datetime(str(ds.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {theta_level} [K]"
         p.axes.set_title(title, fontsize=10)
         p.colorbar.ax.yaxis.label.set_fontsize(10)
+        p.colorbar.ax.yaxis.label.set_rotation(270)
+        p.colorbar.ax.yaxis.label.set_verticalalignment("baseline")
         p.colorbar.set_ticks(global_levels[::2])
         p.colorbar.ax.tick_params(labelsize=8)
         fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
@@ -236,6 +238,8 @@ def create_figure_pv(netcdf_file: str, images_folder: str) -> None:
         title = f"MIMOSA Potential Vorticity\nNorth Pole (PV=PV)\ntime = {format_datetime(str(ds.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {theta_level} [K]"
         p.axes.set_title(title, fontsize=15)
         p.colorbar.ax.yaxis.label.set_fontsize(15)
+        p.colorbar.ax.yaxis.label.set_rotation(270)
+        p.colorbar.ax.yaxis.label.set_verticalalignment("baseline")
         p.colorbar.set_ticks(PV_LEVELS[theta_level])
         p.colorbar.ax.tick_params(labelsize=10)
         fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
@@ -261,6 +265,8 @@ def create_figure_pv(netcdf_file: str, images_folder: str) -> None:
         title = f"MIMOSA Potential Vorticity\nSouth Pole (PV=-PV)\ntime = {format_datetime(str(ds.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {theta_level} [K]"
         p.axes.set_title(title, fontsize=15)
         p.colorbar.ax.yaxis.label.set_fontsize(15)
+        p.colorbar.ax.yaxis.label.set_rotation(270)
+        p.colorbar.ax.yaxis.label.set_verticalalignment("baseline")
         p.colorbar.set_ticks(PV_LEVELS[theta_level])
         p.colorbar.ax.tick_params(labelsize=10)
         fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
@@ -298,6 +304,8 @@ def create_figure_t(netcdf_file: str, images_folder: str) -> None:
         title = f"MIMOSA Temperature [K]\ntime = {format_datetime(str(ds.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {theta_level} [K]"
         p.axes.set_title(title, fontsize=10)
         p.colorbar.ax.yaxis.label.set_fontsize(10)
+        p.colorbar.ax.yaxis.label.set_rotation(270)
+        p.colorbar.ax.yaxis.label.set_verticalalignment("baseline")
         p.colorbar.set_ticks(T_LEVELS)
         p.colorbar.ax.tick_params(labelsize=8)
         fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
@@ -322,6 +330,8 @@ def create_figure_t(netcdf_file: str, images_folder: str) -> None:
         title = f"MIMOSA Temperature [K]\nNorth Pole\ntime = {format_datetime(str(ds.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {theta_level} [K]"
         p.axes.set_title(title, fontsize=15)
         p.colorbar.ax.yaxis.label.set_fontsize(15)
+        p.colorbar.ax.yaxis.label.set_rotation(270)
+        p.colorbar.ax.yaxis.label.set_verticalalignment("baseline")
         p.colorbar.set_ticks(T_LEVELS)
         p.colorbar.ax.tick_params(labelsize=10)
         fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
@@ -346,6 +356,8 @@ def create_figure_t(netcdf_file: str, images_folder: str) -> None:
         title = f"MIMOSA Temperature [K]\nSouth Pole\ntime = {format_datetime(str(ds.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {theta_level} [K]"
         p.axes.set_title(title, fontsize=15)
         p.colorbar.ax.yaxis.label.set_fontsize(15)
+        p.colorbar.ax.yaxis.label.set_rotation(270)
+        p.colorbar.ax.yaxis.label.set_verticalalignment("baseline")
         p.colorbar.set_ticks(T_LEVELS)
         p.colorbar.ax.tick_params(labelsize=10)
         fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
@@ -395,6 +407,8 @@ def create_figure_wind(netcdf_file: str, images_folder: str) -> None:
         title = f"MIMOSA Wind [m.s-]\ntime = {format_datetime(str(ds_u.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {ds_u.isentropic_level_Kelvin} [K]"
         p.axes.set_title(title, fontsize=10)
         p.colorbar.ax.yaxis.label.set_fontsize(10)
+        p.colorbar.ax.yaxis.label.set_rotation(270)
+        p.colorbar.ax.yaxis.label.set_verticalalignment("baseline")
         p.colorbar.set_label("Wind [m.s-1]")
         p.colorbar.ax.tick_params(labelsize=8)
         fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
@@ -426,6 +440,8 @@ def create_figure_wind(netcdf_file: str, images_folder: str) -> None:
         title = f"MIMOSA Wind [m.s-]\nNorth Pole\ntime = {format_datetime(str(ds_u.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {ds_u.isentropic_level_Kelvin} [K]"
         p.axes.set_title(title, fontsize=10)
         p.colorbar.ax.yaxis.label.set_fontsize(10)
+        p.colorbar.ax.yaxis.label.set_rotation(270)
+        p.colorbar.ax.yaxis.label.set_verticalalignment("baseline")
         p.colorbar.set_label("Wind [m.s-1]")
         p.colorbar.ax.tick_params(labelsize=8)
         fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
@@ -457,6 +473,8 @@ def create_figure_wind(netcdf_file: str, images_folder: str) -> None:
         title = f"MIMOSA Wind [m.s-]\nSouth Pole\ntime = {format_datetime(str(ds_u.time.values[0]).split('.')[0],'%Y-%m-%dT%H:%M:%S','%d/%m/%Y %H:%M')}, theta = {ds_u.isentropic_level_Kelvin} [K]"
         p.axes.set_title(title, fontsize=10)
         p.colorbar.ax.yaxis.label.set_fontsize(10)
+        p.colorbar.ax.yaxis.label.set_rotation(270)
+        p.colorbar.ax.yaxis.label.set_verticalalignment("baseline")
         p.colorbar.set_label("Wind [m.s-1]")
         p.colorbar.ax.tick_params(labelsize=8)
         fig.savefig(image_filepath, dpi=200, bbox_inches='tight')
