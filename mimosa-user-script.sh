@@ -72,6 +72,11 @@ function warn_msg(){
     echo "$(date +'%d/%m/%Y %H:%M:%S')   [WARNING]   ${txt}"
 }
 
+function check_args(){
+    if [ ! -d ${SIMUDIR} ]; then mkdir ${SIMUDIR}; fi
+    if [ ! -d ${INDATADIR} ]; then err_msg "Your input data directory ${INDATADIR} was not found, please check your configuration file"; fi
+}
+
 function main(){
 
     info_msg "!======================================================================!"
@@ -101,13 +106,32 @@ function main(){
     if [ ! -d "${SIMUDIR}/${RUNDIR}" ]; then mkdir ${SIMUDIR}/${RUNDIR}; fi
     if [ ! -d "${SIMUDIR}/${RUNDIR}/DATA" ]; then mkdir ${SIMUDIR}/${RUNDIR}/DATA; fi
 
+    grib_parent_dir=$(dirname ${INDATADIR})
+    make_symlink=0
+    if [[ "$(dirname "${INDATADIR}")" == "${SIMUDIR}" ]]; then
+        # echo "INDATADIR is a direct subdirectory of SIMUDIR."
+        if [[ "$(basename "${INDATADIR}")" == "GRIB" ]] || [[ "$(basename "${INDATADIR}")" == "ECMR" ]]; then
+            make_symlink=0
+        else
+            make_symlink=1
+    else
+        # echo "INDATADIR is not a direct subdirectory of SIMUDIR."
+        make_symlink=1
+    fi
+
     if (( INTYPE == 1 )); then
+        if [ ${make_symlink} == 1 ]; then
+            ln -s ${INDATADIR} ${SIMUDIR}/ECMR
+        fi
         if [ ! -d "${SIMUDIR}/ECMR" ]; then
             err_msg "Can't find ECMR directory"
             err_msg "End of program"
             exit 1
         fi
     elif (( INTYPE == 2  )); then
+        if [ ${make_symlink} == 1 ]; then
+            ln -s ${INDATADIR} ${SIMUDIR}/GRIB
+        fi
         if [ ! -d "${SIMUDIR}/GRIB" ]; then
             err_msg "Can't find GRIB directory"
             err_msg "End of program"
