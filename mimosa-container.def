@@ -15,6 +15,7 @@ From: ubuntu:20.04
 
     mkdir -p /usr/local/src
 
+    pip3 install --upgrade --no-binary shapely shapely
     pip3 install numpy matplotlib pyproj cartopy scipy seaborn netCDF4 xarray
 
     cd /usr/local
