@@ -31,50 +31,49 @@
 # DO NOT CHANGE ANYTHING BELOW
 
 set -e
-export MARS_MULTITARGET_STRICT_FORMAT=1
-module load ecmwf-toolbox
+
+SCRIPT_NAME=$(basename "$0")
 
 function help() {
     bold=$(tput bold)
     normal=$(tput sgr0)
-    echo "# ########################################"
-    echo "# #                          __   _      #"
-    echo "# #  SCRIPT FOR            _(  )_( )_    #"
-    echo "# #   THE ECMWF           (_   _    _)   #"
-    echo "# #    DATA EXTRACTION   / /(_) (__)     #"
-    echo "# #                     / / / / / /      #"
-    echo "# #                    / / / / / /       #"
-    echo "# ########################################"
-    echo "#"
-    echo "# ${bold}${SCRIPT_NAME}${normal} script extracts and formats the ECMWF data into"
-    echo "# files that are accepted by the simulation MIMOSA tool."
-    echo "#"
-    echo "# The script knows which meterological data and variables are needed; the user input"
-    echo "# must only define the dates, the spatial resolution and additional logistical information,"
-    echo "# like the data directory and the working directory."
-    echo "# The extraction is performed on the MARS server, so the script should be launched on this server."
-    echo "#"
-    echo "# Usage: ${SCRIPT_NAME} [options] arguments"
-    echo "# Options:"
-    echo "#   ${bold}-h, --help${normal}     Show this help message and exit"
-    echo "# Arguments:"
-    echo "#   ${bold}--config conf_filepath${normal}  This argument must correspond to the configuration"
-    echo "# file where the user defines input parameters needed for the extraction See an example of a"
-    echo "# configuration file below."
-    echo "#"
-    echo "# +--------------------------------------------------------------------------------+"
-    echo "# | Example of the content in the configuration file                               |"
-    echo "# |                                                                                |"
-    echo "# | Example filename : ${bold}my_parameters.conf${normal}                                          |"
-    echo "# | Example content below :                                                        |"
-    echo "# |                                                                                |"
-    echo "# | START_DATE='20230101'                                                          |"
-    echo "# | END_DATE='20230105'                                                            |"
-    echo "# | DATA_CLASS='od'                                                                |"
-    echo "# | SPATIAL_RESOLUTION='1.125'                                                     |"
-    echo "# | DATA_DIR='/my/dir/for/data'                                                    |"
-    echo "# | WORKING_DIR='/working/dir/for/aux/files'                                       |"
-    echo "# +--------------------------------------------------------------------------------+"
+    echo ""
+    echo "###   SCRIPT FOR            _(  )_( )_    "
+    echo "###    THE ECMWF           (_   _    _)   "
+    echo "###     DATA EXTRACTION   / /(_) (__)     "
+    echo "###                      / / / / / /      "
+    echo "###                     / / / / / /       "
+    echo "###"
+    echo "### ${bold}${SCRIPT_NAME}${normal} script extracts and formats the ECMWF data into"
+    echo "### files that are accepted by the simulation MIMOSA tool."
+    echo "###"
+    echo "### The script knows which meterological data and variables are needed; the user input"
+    echo "### must only define the dates, the spatial resolution and additional logistical information,"
+    echo "### like the data directory and the working directory."
+    echo "### The extraction is performed on the MARS server, hence the script must be launched on MARS server."
+    echo "###"
+    echo "### Usage: ${SCRIPT_NAME} [options] arguments"
+    echo "### Options:"
+    echo "###   ${bold}-h, --help${normal}              Show this help message and exit"
+    echo "### Arguments:"
+    echo "###   ${bold}--config conf_filepath${normal}  This argument must correspond to the configuration"
+    echo "###                           file where the user defines input parameters needed"
+    echo "###                           for the extraction See an example of a configuration file below."
+    echo "###"
+    echo "### +--------------------------------------------------------------------------------+"
+    # echo "### | Example of the content in the configuration file                               |"
+    # echo "### |                                                                                |"
+    echo "### | Example filename : ${bold}my_parameters.conf${normal}                                          |"
+    echo "### | Example content below :                                                        |"
+    echo "### |                                                                                |"
+    echo "### | START_DATE='20230101'                                                          |"
+    echo "### | END_DATE='20230105'                                                            |"
+    echo "### | DATA_CLASS='od'                                                                |"
+    echo "### | SPATIAL_RESOLUTION='1.125'                                                     |"
+    echo "### | DATA_DIR='/my/dir/for/data'                                                    |"
+    echo "### | WORKING_DIR='/working/dir/for/aux/files'                                       |"
+    echo "### +--------------------------------------------------------------------------------+"
+    echo ""
 }
 
 function check_args() {
@@ -173,6 +172,8 @@ function check_the_date(){
 }
 
 function main(){
+    export MARS_MULTITARGET_STRICT_FORMAT=1
+    module load ecmwf-toolbox
     ########################################
     check_the_date
     ########################################
