@@ -296,12 +296,6 @@ EOF
         exit 1
     fi
 
-    for FILE in ${DATA_DIR}/D${DATE}*.grib; do
-        FILENAME=$(basename ${FILE} ".grib")
-        NEW_NAME="D${FILENAME:3:8}.grib"
-        mv ${FILE} ${DATA_DIR}/${NEW_NAME} 
-    done
-
     for FILE in ${DATA_DIR}/????????_????_*.grib; do
         FILENAME=$(basename ${FILE} ".grib")
         date_part=$(echo "${FILENAME}" | cut -d'_' -f1)
