@@ -591,11 +591,16 @@ def main(start_date: str, end_date: str, output_folder: str, images_folder: str)
         list_of_fortran_files.extend(glob.glob(f"{output_folder}/*g{date_string}*.????"))
         start_dt = start_dt + dt.timedelta(days=1)
     list_of_fortran_files.sort()
+    list_of_netcdf_files = []
     ii = 1
-    for file in list_of_fortran_files:
-        N = len(list_of_fortran_files)
-        LOGGER.info(f"Processing file {os.path.basename(file)} ({ii}/{N})...")
-        nc_file = create_netcdf_file(file, output_folder)
+    N = len(list_of_fortran_files)
+    for ii,file in enumerate(list_of_fortran_files):
+        LOGGER.info(f"Processing file {os.path.basename(file)} into netCDF ({ii+1}/{N})...")
+        list_of_netcdf_files.append(create_netcdf_file(file, output_folder))
+    ii = 1
+    for nc_file in list_of_netcdf_files:
+        N = len(list_of_netcdf_files)
+        LOGGER.info(f"Creating plot for {os.path.basename(nc_file)} ({ii}/{N})...")
         if "pv" in os.path.basename(nc_file):
             create_figure_pv(nc_file, images_folder)
         elif "t" in os.path.basename(nc_file):
@@ -608,9 +613,9 @@ def main(start_date: str, end_date: str, output_folder: str, images_folder: str)
                 continue
             else:
                 create_figure_wind([u_filepath, v_filepath], images_folder)
-                other_file = file.replace("ug","vg")
-                list_of_fortran_files.remove(file)
-                list_of_fortran_files.remove(other_file)
+                other_file = nc_file.replace("ug","vg")
+                list_of_netcdf_files.remove(nc_file)
+                list_of_netcdf_files.remove(other_file)
         elif "v" in os.path.basename(nc_file):
             v_filepath = nc_file
             u_filepath = nc_file.replace("vg","ug")
@@ -619,9 +624,9 @@ def main(start_date: str, end_date: str, output_folder: str, images_folder: str)
                 continue
             else:
                 create_figure_wind([u_filepath, v_filepath], images_folder)
-                other_file = file.replace("vg","ug")
-                list_of_fortran_files.remove(file)
-                list_of_fortran_files.remove(other_file)
+                other_file = nc_file.replace("vg","ug")
+                list_of_netcdf_files.remove(nc_file)
+                list_of_netcdf_files.remove(other_file)
         else:
             LOGGER.warning(f"Can't plot {os.path.basename(nc_file)}, unrecognized variable")
         ii+=1
