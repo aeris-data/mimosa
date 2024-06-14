@@ -93,7 +93,7 @@ function main(){
     info_msg "!======================================================================!"
 
     ############################################
-    # Folders/file organization		           #
+    # Folders/file organization	               #
     ############################################
 
     cd ${SIMUDIR}
@@ -115,6 +115,7 @@ function main(){
         if [[ "$(basename "${INDATADIR}")" == "GRIB" ]] || [[ "$(basename "${INDATADIR}")" == "ECMR" ]]; then
             make_symlink=0
         else
+
             make_symlink=1
         fi
     else
@@ -124,7 +125,7 @@ function main(){
 
     if (( INTYPE == 1 )); then
         if [ ${make_symlink} == 1 ]; then
-            ln -s ${INDATADIR} ${SIMUDIR}/ECMR
+            ln -sf ${INDATADIR} ${SIMUDIR}/ECMR
         fi
         if [ ! -d "${SIMUDIR}/ECMR" ]; then
             err_msg "Can't find ECMR directory"
@@ -133,7 +134,7 @@ function main(){
         fi
     elif (( INTYPE == 2  )); then
         if [ ${make_symlink} == 1 ]; then
-            ln -s ${INDATADIR} ${SIMUDIR}/GRIB
+            ln -sf ${INDATADIR} ${SIMUDIR}/GRIB
         fi
         if [ ! -d "${SIMUDIR}/GRIB" ]; then
             err_msg "Can't find GRIB directory"
